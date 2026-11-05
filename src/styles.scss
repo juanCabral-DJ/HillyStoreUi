@@ -1,1 +1,149 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================
+   HillyStore · Estilos globales y utilidades para AnimateOnScroll
+   ========================================================== */
+@use 'tailwindcss';
+@use 'primeicons/primeicons.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  overflow-x: clip;
+  min-height: 100dvh;
+  background-color: var(--p-surface-0, #ffffff);
+  color: var(--p-surface-900, #2a1620);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+html.app-dark body {
+  background-color: var(--p-surface-950, #17101a);
+  color: var(--p-surface-50, #fbeff5);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Contenedor centrado mobile-first */
+.hs-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.hs-container .header {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 768px) {
+  .hs-container {
+    padding-inline: 1.5rem;
+  }
+}
+
+/* ==========================================================
+   Clases para la directiva pAnimateOnScroll de PrimeNG
+   Uso: pAnimateOnScroll enterClass="hs-enter-fade-up"
+   ========================================================== */
+
+@keyframes hsFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hsFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hsScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes hsFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.hs-enter-fade-up {
+  animation: hsFadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hs-enter-fade-in {
+  animation: hsFadeIn 0.45s ease-out forwards;
+}
+
+.hs-enter-scale {
+  animation: hsScaleIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hs-leave-fade-out {
+  animation: hsFadeOut 0.3s ease-in forwards;
+}
+
+/* Accesibilidad: respeta prefers-reduced-motion (Fase 4 del plan) */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hs-enter-fade-up,
+  .hs-enter-fade-in,
+  .hs-enter-scale,
+  .hs-leave-fade-out {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,87 @@
+<section class="hs-hero">
+  <div class="hs-container hs-hero__inner">
+    <!-- Badge superior de ubicación y propuesta -->
+    <div
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+      class="hs-hero__badge"
+    >
+      <span class="hs-hero__badge-dot" aria-hidden="true"></span>
+      <span>Tienda de ropa en Baní · Pedidos Shein & Stock local</span>
+    </div>
+
+    <!-- Título principal -->
+    <h1
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+      class="hs-hero__title"
+    >
+      Tus compras de <span class="hs-highlight">Shein</span> fáciles y ropa en
+      <span class="hs-highlight-alt">stock inmediato</span>.
+    </h1>
+
+    <!-- Subtítulo explicativo -->
+    <p
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+      class="hs-hero__subtitle"
+    >
+      Pide lo que te guste de Shein con solo el {{ settings().depositPercentage }}% de anticipo y
+      recíbelo en Baní en {{ settingsService.sheinDaysRange() }}. O explora nuestras prendas en stock
+      para mujeres, hombres y niños listas para entrega hoy.
+    </p>
+
+    <!-- Botones de Acción (CTAs) -->
+    <div
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+      class="hs-hero__actions"
+    >
+      <a routerLink="/pedidos-shein" class="hs-btn-primary">
+        <span>Pedir por Shein (50% anticipo)</span>
+        <span class="pi pi-arrow-right" aria-hidden="true"></span>
+      </a>
+
+      <a routerLink="/catalogo" class="hs-btn-secondary">
+        <span>Ver catálogo en stock</span>
+        <span class="pi pi-shopping-bag" aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <!-- Puntos clave de confianza -->
+    <div
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+      class="hs-hero__features"
+    >
+      <div class="hs-feature-item">
+        <span class="hs-feature-icon">🛍️</span>
+        <div class="hs-feature-text">
+          <strong>Sin tarjeta internacional</strong>
+          <span>Pagas en efectivo o transferencia</span>
+        </div>
+      </div>
+
+      <div class="hs-feature-item">
+        <span class="hs-feature-icon">📍</span>
+        <div class="hs-feature-text">
+          <strong>Local físico en Baní</strong>
+          <span>Retiro en tienda o envío local</span>
+        </div>
+      </div>
+
+      <div class="hs-feature-item">
+        <span class="hs-feature-icon">💬</span>
+        <div class="hs-feature-text">
+          <strong>Todo por WhatsApp</strong>
+          <span>Atención rápida y personalizada</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

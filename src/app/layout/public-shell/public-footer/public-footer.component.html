@@ -1,0 +1,75 @@
+<footer class="hs-footer">
+  <div class="hs-container hs-footer__grid">
+    <!-- Columna 1: Marca y resumen -->
+    <div class="hs-footer__col text-2xl">
+      <a routerLink="/" class="hs-brand">
+        <span class="hs-brand__text">Hilly<span>Store</span></span>
+      </a>
+      <p class="hs-footer__desc">
+        Tu tienda en Baní para encargos de Shein ({{ settings().depositPercentage }}% de anticipo,
+        entrega en {{ settingsService.sheinDaysRange() }}) y ropa en stock para mujeres, hombres y
+        niños.
+      </p>
+    </div>
+
+    <!-- Columna 2: Navegación -->
+    <div class="hs-footer__col">
+      <h3 class="hs-footer__title">Explorar</h3>
+      <ul class="hs-footer__links">
+        <li><a routerLink="/pedidos-shein">Pedidos Shein</a></li>
+        <li><a routerLink="/catalogo">Catálogo en stock</a></li>
+        <li><a routerLink="/" fragment="como-pedir">Cómo pedir</a></li>
+        <li><a routerLink="/" fragment="preguntas-frecuentes">Preguntas frecuentes</a></li>
+      </ul>
+    </div>
+
+    <!-- Columna 3: Ubicación, horario y redes -->
+    <div class="hs-footer__col">
+      <h3 class="hs-footer__title">Visítanos</h3>
+      <p class="hs-footer__info">📍 {{ settings().address }}</p>
+      <p class="hs-footer__info">
+        🕘 Horario: {{ settings().opensAt }} – {{ settings().closesAt }}
+      </p>
+      <p class="hs-footer__info">💳 Pagos en efectivo o transferencia (RD$)</p>
+
+      @if (hasSocials()) {
+        <div class="hs-footer__socials">
+          @if (settings().instagramUrl) {
+            <a
+              [href]="settings().instagramUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hs-footer__social-pill"
+            >
+              Instagram
+            </a>
+          }
+          @if (settings().facebookUrl) {
+            <a
+              [href]="settings().facebookUrl!"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hs-footer__social-pill"
+            >
+              Facebook
+            </a>
+          }
+          @if (settings().tiktokUrl) {
+            <a
+              [href]="settings().tiktokUrl!"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hs-footer__social-pill"
+            >
+              TikTok
+            </a>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="hs-container hs-footer__bottom">
+    <span>© {{ currentYear }} HillyStore · Baní, República Dominicana</span>
+  </div>
+</footer>

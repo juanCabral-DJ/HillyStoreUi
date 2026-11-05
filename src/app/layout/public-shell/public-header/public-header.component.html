@@ -1,0 +1,73 @@
+<p-toolbar class="hs-header">
+  <div class="header hs-header__inner w-full mx-2">
+    <!-- Marca / Logo -->
+    <a routerLink="/" class="hs-brand" aria-label="HillyStore Inicio">
+      <span class="hs-brand__text text-3xl">Hilly<span>Store</span></span>
+    </a>
+
+    <!-- Navegación de escritorio -->
+    <nav class="hs-nav-desktop" aria-label="Navegación principal">
+      @for (item of navItems; track item.label) {
+        <a
+          [routerLink]="item.routerLink"
+          [fragment]="item.fragment"
+          routerLinkActive="hs-nav-link--active"
+          [routerLinkActiveOptions]="{ exact: item.routerLink === '/' }"
+          class="hs-nav-link"
+          [class.hs-nav-link--priority]="item.priority"
+        >
+          {{ item.label }}
+          @if (item.priority) {
+            <span class="hs-priority-pill">Encargos</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Acciones derechas: Tema claro/oscuro + Botón menú móvil -->
+    <div class="hs-header__actions">
+      <div class="hs-theme-switch " title="Cambiar modo claro/oscuro">
+        <p-button
+          [icon]="theme.isDark() ? 'pi pi-moon' : 'pi pi-sun'"
+          (onClick)="theme.toggle()"
+          ariaLabel="Alternar modo oscuro"
+        />
+      </div>
+
+      <p-button
+        styleClass="hs-mobile-trigger"
+        [text]="true"
+        [rounded]="true"
+        (onClick)="drawerVisible.set(true)"
+        ariaLabel="Abrir menú de navegación"
+      >
+        <span class="hs-mobile-trigger__icon" aria-hidden="true">☰</span>
+      </p-button>
+    </div>
+  </div>
+</p-toolbar>
+
+<!-- Panel lateral para celular (PrimeNG Drawer) -->
+<p-drawer
+  [(visible)]="drawerVisible"
+  position="right"
+  header="HillyStore"
+  styleClass="hs-mobile-drawer border-none!"
+>
+  <nav class="hs-nav-mobile" aria-label="Menú móvil">
+    @for (item of navItems; track item.label) {
+      <a
+        [routerLink]="item.routerLink"
+        [fragment]="item.fragment"
+        (click)="drawerVisible.set(false)"
+        class="hs-nav-mobile__link"
+        [class.hs-nav-mobile__link--priority]="item.priority"
+      >
+        <span>{{ item.label }}</span>
+        @if (item.priority) {
+          <span class="hs-priority-pill">50% anticipo</span>
+        }
+      </a>
+    }
+  </nav>
+</p-drawer>
