@@ -5,64 +5,59 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
-import { join } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const browserDistFolder = join(import.meta.dirname, '../browser');
+const serverDistFolder = dirname(fileURLToPath(import.meta.url));
+const browserDistFolder = resolve(serverDistFolder, '../browser');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
+
+// 1. Indicar a Express que confíe en el reverse proxy de Render
+app.set('trust proxy', true);
+
+// 2. Permitir el dominio de Render y habilitar trustProxyHeaders en Angular SSR
+const angularApp = new AngularNodeAppEngine({
+  allowedHosts: [
+    'localhost',
+    'localhost:4200',
+    'localhost:10000',
+    'hillystoreui.onrender.com',
+  ],
+  trustProxyHeaders: true
+});
 
 /**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
-
-/**
- * Serve static files from /browser
+ * Sirve los archivos estáticos desde /browser
  */
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: false,
     redirect: false,
-  }),
+  })
 );
 
 /**
- * Handle all other requests by rendering the Angular application.
+ * Maneja todas las demás peticiones con Angular SSR Engine
  */
-app.use((req, res, next) => {
+app.use('/**', (req, res, next) => {
   angularApp
     .handle(req)
     .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
+      response ? writeResponseToNodeResponse(response, res) : next()
     )
     .catch(next);
 });
 
 /**
- * Start the server if this module is the main entry point, or it is ran via PM2.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
+ * Inicia el servidor si es el módulo principal
  */
-if (isMainModule(import.meta.url) || process.env['pm_id']) {
+if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
-  app.listen(port, (error) => {
-    if (error) {
-      throw error;
-    }
-
+  app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
 }
 
-/**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
- */
 export const reqHandler = createNodeRequestHandler(app);
