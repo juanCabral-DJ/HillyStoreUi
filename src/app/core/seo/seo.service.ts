@@ -14,7 +14,7 @@ export interface PageSeoConfig {
 
 const SITE_NAME = 'HillyStore';
 const DEFAULT_DESCRIPTION =
-  'Tienda de ropa en Baní, República Dominicana. Pedidos por encargo de Shein y catálogo en stock para mujeres, hombres y niños.';
+  'Tienda de ropa en Baní, República Dominicana. Pedidos por encargo de Shein y catálogo en stock para mujeres y hombres.';
 
 /**
  * Configura título, descripción, etiquetas Open Graph / Twitter y canonical por página

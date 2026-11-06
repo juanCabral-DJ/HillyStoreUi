@@ -12,13 +12,12 @@
 // ENUMS Y TIPOS BASE
 // ==========================================================
 
-/** Público objetivo (sin ñ en la API; el frontend muestra "Niños") */
-export type Audience = 'Mujeres' | 'Hombres' | 'Niños';
+/** Público objetivo */
+export type Audience = 'Mujeres' | 'Hombres';
 
 export const AUDIENCE_LABELS: Record<Audience, string> = {
   Mujeres: 'Mujeres',
   Hombres: 'Hombres',
-  Niños: 'Niños',
 };
 
 /** Estructura estándar de error devuelta por el backend y normalizada por el interceptor */

@@ -24,7 +24,7 @@ const angularApp = new AngularNodeAppEngine({
     'localhost:10000',
     'hillystoreui.onrender.com',
   ],
-  trustProxyHeaders: true
+  trustProxyHeaders: true,
 });
 
 /**
@@ -41,7 +41,7 @@ app.use(
 /**
  * Maneja todas las demás peticiones con Angular SSR Engine
  */
-app.use('/**', (req, res, next) => {
+app.use((req, res, next) => {
   angularApp
     .handle(req)
     .then((response) =>
