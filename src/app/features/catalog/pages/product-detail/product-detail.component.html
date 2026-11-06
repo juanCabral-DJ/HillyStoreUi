@@ -1,0 +1,218 @@
+<div class="hs-product-page">
+  <div class="hs-container">
+    <!-- Breadcrumbs -->
+    <nav class="hs-breadcrumbs" aria-label="Ruta de navegación">
+      <a routerLink="/" class="hs-crumb">Inicio</a>
+      <i class="pi pi-chevron-right hs-crumb-sep" aria-hidden="true"></i>
+      <a routerLink="/catalogo" class="hs-crumb">Catálogo</a>
+      @if (product()) {
+        <i class="pi pi-chevron-right hs-crumb-sep" aria-hidden="true"></i>
+        <a [routerLink]="['/catalogo']" [queryParams]="{ categoria: product()?.categorySlug }" class="hs-crumb">
+          {{ product()?.categoryName }}
+        </a>
+        <i class="pi pi-chevron-right hs-crumb-sep" aria-hidden="true"></i>
+        <span class="hs-crumb hs-crumb--active">{{ product()?.name }}</span>
+      }
+    </nav>
+
+    <!-- Estado: Cargando -->
+    @if (loading()) {
+      <div class="hs-detail-skeleton-grid" aria-hidden="true">
+        <p-skeleton width="100%" height="520px" borderRadius="1.5rem" />
+        <div class="hs-detail-skeleton-info">
+          <p-skeleton width="30%" height="1.25rem" />
+          <p-skeleton width="90%" height="2.5rem" />
+          <p-skeleton width="40%" height="2rem" />
+          <p-skeleton width="100%" height="6rem" borderRadius="1rem" />
+          <p-skeleton width="100%" height="3.5rem" borderRadius="9999px" />
+        </div>
+      </div>
+    } @else if (product()) {
+      <!-- Contenedor Principal: 2 Columnas -->
+      <article class="hs-product-showcase">
+        <!-- Columna Izquierda: Galería de Fotos -->
+        <div class="hs-gallery-col">
+          <div class="hs-gallery-main">
+            <img
+              [src]="currentImage()"
+              [alt]="product()!.name"
+              class="hs-gallery-main__img"
+              (error)="onImageError($event)"
+            />
+
+            <!-- Badges flotantes -->
+            <div class="hs-gallery-main__badges">
+              <span class="hs-tag-stock">
+                <span class="hs-dot"></span>
+                En Stock en Baní
+              </span>
+              <span
+                class="hs-tag-audience"
+                [ngClass]="'hs-tag-audience--' + product()!.audience.toLowerCase()"
+              >
+                {{ product()!.audience }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Miniaturas -->
+          @if (product()!.images && product()!.images.length > 1) {
+            <div class="hs-thumbnails-row">
+              @for (img of product()!.images; track img.id; let idx = $index) {
+                <button
+                  type="button"
+                  class="hs-thumb-btn"
+                  [class.hs-thumb-btn--active]="selectedImageIndex() === idx"
+                  (click)="selectImage(idx)"
+                  [attr.aria-label]="'Ver imagen ' + (idx + 1)"
+                >
+                  <img [src]="img.url" [alt]="product()!.name + ' miniatura ' + (idx + 1)" (error)="onImageError($event)" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Columna Derecha: Información y Compra -->
+        <div class="hs-info-col">
+          <a
+            [routerLink]="['/catalogo']"
+            [queryParams]="{ categoria: product()!.categorySlug }"
+            class="hs-info-category"
+          >
+            {{ product()!.categoryName }}
+          </a>
+
+          <h1 class="hs-info-title">{{ product()!.name }}</h1>
+
+          <!-- Precio -->
+          <div class="hs-info-price">
+            <span class="hs-currency">RD$</span>
+            <span class="hs-amount">{{ product()!.price | number:'1.0-0' }}</span>
+          </div>
+
+          <!-- Selector de Tallas -->
+          @if (product()!.usesSizes && product()!.sizes.length > 0) {
+            <div class="hs-sizes-section">
+              <div class="hs-sizes-header">
+                <strong>Selecciona tu talla:</strong>
+                @if (selectedSize()) {
+                  <span class="hs-selected-size-label">Talla elegida: {{ selectedSize() }}</span>
+                }
+              </div>
+
+              <div class="hs-sizes-selector">
+                @for (size of product()!.sizes; track size.id) {
+                  <button
+                    type="button"
+                    class="hs-size-pill"
+                    [class.hs-size-pill--selected]="selectedSize() === size.label"
+                    [class.hs-size-pill--disabled]="!size.inStock"
+                    [disabled]="!size.inStock"
+                    (click)="selectSize(size.label, size.inStock)"
+                  >
+                    {{ size.label }}
+                    @if (!size.inStock) {
+                      <span class="hs-size-pill__soldout">(Agotada)</span>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Botones de Acción -->
+          <div class="hs-actions-group">
+            <button
+              type="button"
+              class="hs-btn-order-wa"
+              (click)="onOrderWhatsApp()"
+              aria-label="Pedir por WhatsApp"
+            >
+              <i class="pi pi-whatsapp" aria-hidden="true"></i>
+              <span>Pedir por WhatsApp</span>
+            </button>
+
+            <button
+              type="button"
+              class="hs-btn-try-store"
+              (click)="onAskFittingInStore()"
+              aria-label="Probar en tienda física en Baní"
+            >
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              <span>Probar en tienda física en Baní</span>
+            </button>
+          </div>
+
+          <!-- Puntos de Confianza Local -->
+          <div class="hs-trust-card">
+            <div class="hs-trust-item">
+              <i class="pi pi-shop" aria-hidden="true"></i>
+              <div>
+                <strong>Retiro sin costo en tienda</strong>
+                <span>Sector El Llano, Baní (9:00 a.m. – 5:00 p.m.)</span>
+              </div>
+            </div>
+
+            <div class="hs-trust-item">
+              <i class="pi pi-truck" aria-hidden="true"></i>
+              <div>
+                <strong>Envíos a domicilio en Baní</strong>
+                <span>Entrega rápida el mismo día o al día siguiente</span>
+              </div>
+            </div>
+
+            <div class="hs-trust-item">
+              <i class="pi pi-wallet" aria-hidden="true"></i>
+              <div>
+                <strong>Pagos seguros en RD$</strong>
+                <span>Efectivo al recibir o transferencia (Popular, Banreservas, BHD)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          @if (product()!.description) {
+            <div class="hs-description-box">
+              <h3>Descripción de la prenda</h3>
+              <p>{{ product()!.description }}</p>
+            </div>
+          }
+        </div>
+      </article>
+
+      <!-- Fila de Productos Relacionados -->
+      @if (relatedProducts().length > 0) {
+        <section class="hs-related-section">
+          <div class="hs-related-header">
+            <span class="hs-related-badge">MÁS EN STOCK</span>
+            <h2 class="hs-related-title">También te puede interesar</h2>
+          </div>
+
+          <div class="hs-related-grid">
+            @for (rel of relatedProducts(); track rel.id) {
+              <article class="hs-related-card">
+                <a [routerLink]="['/catalogo', rel.slug]" class="hs-related-card__media">
+                  <img [src]="rel.primaryImageUrl" [alt]="rel.name" loading="lazy" (error)="onImageError($event)" />
+                  <span class="hs-tag-audience hs-tag-audience--floating">{{ rel.audience }}</span>
+                </a>
+                <div class="hs-related-card__body">
+                  <span class="hs-related-card__cat">{{ rel.categoryName }}</span>
+                  <h3 class="hs-related-card__title">
+                    <a [routerLink]="['/catalogo', rel.slug]">{{ rel.name }}</a>
+                  </h3>
+                  <div class="hs-related-card__footer">
+                    <span class="hs-related-card__price">RD$ {{ rel.price | number:'1.0-0' }}</span>
+                    <a [routerLink]="['/catalogo', rel.slug]" class="hs-related-card__link">
+                      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+                    </a>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+    }
+  </div>
+</div>
