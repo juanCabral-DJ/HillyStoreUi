@@ -6,6 +6,7 @@ import { StockCarouselComponent } from './section/stock-carousel/stock-carousel.
 import { CategoriesComponent } from './section/categories/categories.component';
 import { DeliveryInfoComponent } from './section/delivery-info/delivery-info.component';
 import { FaqAccordionComponent } from './section/faq-accordion/faq-accordion.component';
+import { StoreLocationComponent } from './section/store-location/store-location.component';
 
 @Component({
   selector: 'app-home',
@@ -17,6 +18,7 @@ import { FaqAccordionComponent } from './section/faq-accordion/faq-accordion.com
     CategoriesComponent,
     DeliveryInfoComponent,
     FaqAccordionComponent,
+    StoreLocationComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',

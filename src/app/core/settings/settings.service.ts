@@ -6,7 +6,7 @@ import { API_BASE_URL, ApiClient } from '../api';
 
 export const DEFAULT_STORE_SETTINGS: StoreSettingsDto = {
   whatsAppNumber: '',
-  address: 'Baní, Provincia Peravia, República Dominicana',
+  address: 'Calle 0001, El Llano, Baní, República Dominicana',
   opensAt: '09:00',
   closesAt: '17:00',
   instagramUrl: '',

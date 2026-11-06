@@ -1,0 +1,149 @@
+<section class="hs-location-section" id="visitanos">
+  <div class="hs-container">
+    <div class="hs-location-grid">
+      <!-- Columna 1: Información de la tienda -->
+      <div
+        class="hs-location-info"
+        pAnimateOnScroll
+        enterClass="hs-enter-fade-up"
+        [once]="true"
+      >
+        <span class="hs-location-info__badge">VISÍTANOS EN BANÍ</span>
+        <h2 class="hs-location-info__title">Ven a Nuestra Tienda Física</h2>
+        <p class="hs-location-info__subtitle">
+          Pruébate las prendas disponibles en stock, retira tus encargos de Shein sin cargos
+          adicionales y recibe atención personalizada en un ambiente boutique.
+        </p>
+
+        <!-- Bloque de Dirección y Horarios -->
+        <div class="hs-location-details">
+          <!-- Dirección -->
+          <div class="hs-detail-item">
+            <div class="hs-detail-item__icon">
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+            </div>
+            <div class="hs-detail-item__content">
+              <strong>Dirección del Local</strong>
+              <span>{{ settings().address }}</span>
+              <small class="hs-detail-item__note">Sector El Llano · Baní, Peravia</small>
+            </div>
+          </div>
+
+          <!-- Horario y Estado en Vivo -->
+          <div class="hs-detail-item">
+            <div class="hs-detail-item__icon">
+              <i class="pi pi-clock" aria-hidden="true"></i>
+            </div>
+            <div class="hs-detail-item__content">
+              <div class="hs-status-row">
+                <strong>Horario de Atención</strong>
+                <span
+                  class="hs-live-status"
+                  [class.hs-live-status--open]="storeStatus().isOpen"
+                >
+                  <span class="hs-status-dot"></span>
+                  {{ storeStatus().label }}
+                </span>
+              </div>
+              <span>Lunes a Sábado: 9:00 a.m. – 5:00 p.m.</span>
+              <small class="hs-detail-item__note">{{ storeStatus().sub }}</small>
+            </div>
+          </div>
+
+          <!-- Redes Sociales -->
+          @if (settings().instagramUrl || settings().tiktokUrl) {
+            <div class="hs-detail-item">
+              <div class="hs-detail-item__icon">
+                <i class="pi pi-share-alt" aria-hidden="true"></i>
+              </div>
+              <div class="hs-detail-item__content">
+                <strong>Síguenos en Redes</strong>
+                <div class="hs-social-links">
+                  @if (settings().instagramUrl) {
+                    <a
+                      [href]="settings().instagramUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hs-social-pill"
+                      aria-label="Instagram de HillyStore"
+                    >
+                      <i class="pi pi-instagram" aria-hidden="true"></i>
+                      <span>Instagram</span>
+                    </a>
+                  }
+                  @if (settings().tiktokUrl) {
+                    <a
+                      [href]="settings().tiktokUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hs-social-pill"
+                      aria-label="TikTok de HillyStore"
+                    >
+                      <i class="pi pi-video" aria-hidden="true"></i>
+                      <span>TikTok</span>
+                    </a>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="hs-location-actions">
+          <a
+            [href]="directionsUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hs-btn-directions"
+            aria-label="Cómo llegar en Google Maps"
+          >
+            <i class="pi pi-compass" aria-hidden="true"></i>
+            <span>Cómo llegar (GPS)</span>
+          </a>
+
+          <button
+            type="button"
+            class="hs-btn-location-wa"
+            (click)="onAskLocationWhatsApp()"
+            aria-label="Pedir ubicación por WhatsApp"
+          >
+            <i class="pi pi-whatsapp" aria-hidden="true"></i>
+            <span>Pedir por WhatsApp</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Columna 2: Mapa Interactivo -->
+      <div
+        class="hs-location-map-wrap"
+        pAnimateOnScroll
+        enterClass="hs-enter-scale"
+        [once]="true"
+      >
+        <div class="hs-map-card">
+          <iframe
+            [src]="mapEmbedUrl()"
+            class="hs-map-iframe"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Mapa de ubicación de HillyStore en Baní"
+            allowfullscreen
+          ></iframe>
+
+          <!-- Botón flotante para abrir el mapa en la app del teléfono -->
+          <a
+            [href]="directionsUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hs-map-floating-btn"
+            aria-label="Abrir en Google Maps"
+          >
+            <span>Ver mapa en Google Maps</span>
+            <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
