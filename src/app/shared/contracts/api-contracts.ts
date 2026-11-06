@@ -226,6 +226,17 @@ export interface UpsertFaqRequest {
 }
 
 // ==========================================================
+// FORMULARIO PEDIDOS SHEIN
+// ==========================================================
+
+export interface SheinFormItem {
+  id: string;
+  link: string;
+  size: string;
+  notes?: string;
+}
+
+// ==========================================================
 // AUTENTICACIÓN Y ADMIN
 // ==========================================================
 

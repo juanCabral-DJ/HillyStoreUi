@@ -1,0 +1,201 @@
+<div class="hs-shein-page">
+  <!-- Encabezado de la página -->
+  <header class="hs-shein-hero">
+    <div class="hs-container">
+      <div class="hs-shein-hero__inner" pAnimateOnScroll enterClass="hs-enter-fade-up" [once]="true">
+        <span class="hs-shein-hero__badge">SIN TARJETA INTERNACIONAL NI CASILLERO</span>
+        <h1 class="hs-shein-hero__title">Haz tu Pedido de Shein a Baní</h1>
+        <p class="hs-shein-hero__subtitle">
+          Pega los enlaces o códigos de las prendas que te gusten de Shein. Te confirmamos el
+          total exacto en pesos dominicanos (RD$) y abonas solo el
+          {{ settingsService.depositPercentage() }}% de anticipo.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="hs-container hs-shein-main">
+    <div class="hs-shein-grid">
+      <!-- Columna 1: Formulario Interactivo -->
+      <section class="hs-shein-form-card" aria-label="Formulario de pedidos Shein">
+        <h2 class="hs-form-title">Tus artículos de Shein</h2>
+        <p class="hs-form-subtitle">
+          Agrega todos los productos que deseas en un solo mensaje de WhatsApp.
+        </p>
+
+        <!-- Nombre del cliente (opcional) -->
+        <div class="hs-field-group">
+          <label for="customerName" class="hs-label">Tu nombre (opcional):</label>
+          <input
+            id="customerName"
+            type="text"
+            class="hs-input"
+            placeholder="Ej. María Pérez"
+            [(ngModel)]="customerName"
+          />
+        </div>
+
+        <!-- Lista de Artículos -->
+        <div class="hs-items-list">
+          @for (item of items(); track item.id; let idx = $index) {
+            <div class="hs-item-card">
+              <div class="hs-item-card__header">
+                <span class="hs-item-num">Artículo #{{ idx + 1 }}</span>
+                @if (items().length > 1) {
+                  <button
+                    type="button"
+                    class="hs-item-remove-btn"
+                    (click)="removeItem(item.id)"
+                    aria-label="Eliminar este artículo"
+                  >
+                    <i class="pi pi-trash" aria-hidden="true"></i>
+                    <span>Eliminar</span>
+                  </button>
+                }
+              </div>
+
+              <!-- Enlace o código de Shein -->
+              <div class="hs-field-group">
+                <label [for]="'link-' + item.id" class="hs-label">
+                  Link o código de prenda en Shein: <span class="hs-req">*</span>
+                </label>
+                <div class="hs-input-icon-wrap">
+                  <i class="pi pi-link" aria-hidden="true"></i>
+                  <input
+                    [id]="'link-' + item.id"
+                    type="url"
+                    class="hs-input hs-input--with-icon"
+                    placeholder="Pega el link de Shein aquí (ej. https://shein.top/...)"
+                    [(ngModel)]="item.link"
+                  />
+                </div>
+              </div>
+
+              <!-- Fila: Talla y Notas de color/variante -->
+              <div class="hs-item-row">
+                <div class="hs-field-group hs-field-group--size">
+                  <label [for]="'size-' + item.id" class="hs-label">Talla: <span class="hs-req">*</span></label>
+                  <select [id]="'size-' + item.id" class="hs-select" [(ngModel)]="item.size">
+                    @for (s of availableSizes; track s) {
+                      <option [value]="s">{{ s }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="hs-field-group hs-field-group--notes">
+                  <label [for]="'notes-' + item.id" class="hs-label">Color o detalle (opcional):</label>
+                  <input
+                    [id]="'notes-' + item.id"
+                    type="text"
+                    class="hs-input"
+                    placeholder="Ej. Color negro, estampado floral..."
+                    [(ngModel)]="item.notes"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Botón para agregar otro artículo -->
+        <button type="button" class="hs-btn-add-item" (click)="addItem()">
+          <i class="pi pi-plus" aria-hidden="true"></i>
+          <span>Agregar otro artículo de Shein</span>
+        </button>
+
+        <!-- Notas generales del pedido -->
+        <div class="hs-field-group hs-field-group--general">
+          <label for="generalNotes" class="hs-label">Notas o preguntas adicionales:</label>
+          <textarea
+            id="generalNotes"
+            class="hs-textarea"
+            rows="2"
+            placeholder="¿Prefieres retiro en tienda o envío a domicilio en Baní?"
+            [(ngModel)]="generalNotes"
+          ></textarea>
+        </div>
+
+        <!-- Mensaje de error si falta link -->
+        @if (errorMessage()) {
+          <div class="hs-alert-error" role="alert">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Botón Principal: Enviar a WhatsApp -->
+        <button
+          type="button"
+          class="hs-btn-submit-wa"
+          (click)="onSubmitOrder()"
+          aria-label="Enviar lista de artículos por WhatsApp"
+        >
+          <i class="pi pi-whatsapp" aria-hidden="true"></i>
+          <span>Enviar pedido a WhatsApp ({{ items().length }} {{ items().length === 1 ? 'artículo' : 'artículos' }})</span>
+        </button>
+      </section>
+
+      <!-- Columna 2: Resumen y Beneficios del Servicio -->
+      <aside class="hs-shein-summary-col">
+        <!-- Tarjeta de Condiciones Claras -->
+        <div class="hs-summary-card">
+          <h3 class="hs-summary-title">Cómo funciona tu encargo</h3>
+
+          <ul class="hs-conditions-list">
+            <li class="hs-condition-item">
+              <span class="hs-cond-icon">💰</span>
+              <div>
+                <strong>Solo el {{ settingsService.depositPercentage() }}% de anticipo</strong>
+                <span>El restante 50% lo pagas cuando tu paquete llegue a Baní.</span>
+              </div>
+            </li>
+
+            <li class="hs-condition-item">
+              <span class="hs-cond-icon">⏱️</span>
+              <div>
+                <strong>Entrega en {{ settingsService.sheinDaysRange() }}</strong>
+                <span>Te avisamos tan pronto el paquete arribe al país para que pases a retirar.</span>
+              </div>
+            </li>
+
+            <li class="hs-condition-item">
+              <span class="hs-cond-icon">📍</span>
+              <div>
+                <strong>Retiro en local o envío local</strong>
+                <span>Pasa por nuestro local en {{ settingsService.settings().address }} o pídelo a tu casa.</span>
+              </div>
+            </li>
+
+            <li class="hs-condition-item">
+              <span class="hs-cond-icon">🏦</span>
+              <div>
+                <strong>Sin tarjeta internacional</strong>
+                <span>Pagas en pesos dominicanos por Banreservas, Popular, BHD o efectivo.</span>
+              </div>
+            </li>
+          </ul>
+
+          <div class="hs-summary-cta">
+            <button type="button" class="hs-btn-consult-help" (click)="onAskGeneralInquiry()">
+              <i class="pi pi-question-circle" aria-hidden="true"></i>
+              <span>¿Tienes preguntas antes de ordenar?</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tip: Cómo copiar el link de Shein -->
+        <div class="hs-tip-box">
+          <div class="hs-tip-box__header">
+            <i class="pi pi-lightbulb" aria-hidden="true"></i>
+            <strong>¿Cómo copiar el link en la App de Shein?</strong>
+          </div>
+          <ol class="hs-tip-steps">
+            <li>Abre la prenda en la app de <strong>Shein</strong>.</li>
+            <li>Toca el icono de <strong>Compartir</strong> (arriba a la derecha).</li>
+            <li>Selecciona <strong>"Copiar enlace"</strong> y pégalo en el formulario.</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>

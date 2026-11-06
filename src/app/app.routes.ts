@@ -21,6 +21,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/catalog').then((m) => m.ProductDetailComponent),
       },
+      {
+        path: 'pedidos-shein',
+        loadComponent: () =>
+          import('./features/shein-orders').then((m) => m.SheinOrdersComponent),
+      },
     ],
   },
 ];
