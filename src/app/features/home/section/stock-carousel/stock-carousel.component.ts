@@ -80,8 +80,8 @@ export class StockCarouselComponent implements OnInit {
 
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
-    img.src =
-      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=700&q=80';
+    img.onerror = null;
+    img.src = '/hero.png';
   }
 
   private getFallbackProducts(): ProductListItemDto[] {

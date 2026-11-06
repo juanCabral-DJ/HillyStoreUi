@@ -153,7 +153,7 @@
       </div>
     } @else if (products().length === 0) {
       <!-- Estado Vacío -->
-      <div class="hs-catalog-empty" pAnimateOnScroll enterClass="hs-enter-fade-in" [once]="true">
+      <div class="hs-catalog-empty hs-enter-fade-in">
         <div class="hs-catalog-empty__icon">
           <i class="pi pi-search" aria-hidden="true"></i>
         </div>
@@ -168,12 +168,7 @@
       </div>
     } @else {
       <!-- Grilla de Productos -->
-      <div
-        class="hs-catalog-grid"
-        pAnimateOnScroll
-        enterClass="hs-enter-fade-up"
-        [once]="true"
-      >
+      <div class="hs-catalog-grid hs-enter-fade-up">
         @for (product of products(); track product.id) {
           <article class="hs-product-item">
             <!-- Imagen con enlace -->
