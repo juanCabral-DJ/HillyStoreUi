@@ -41,12 +41,7 @@
       </div>
     } @else {
       <!-- Carrusel de prendas -->
-      <div
-        class="hs-carousel-wrapper"
-        pAnimateOnScroll
-        enterClass="hs-enter-fade-up"
-        [once]="true"
-      >
+      <div class="hs-carousel-wrapper hs-enter-fade-up">
         <p-carousel
           [value]="products()"
           [numVisible]="4"

@@ -16,7 +16,7 @@
 
   <main class="hs-container hs-shein-main">
     <div class="hs-shein-grid">
-      <!-- Columna 1: Formulario Único + Tabla de Artículos Agregados -->
+      <!-- Columna 1: Formulario Único + Lista/Tabla de Artículos Agregados -->
       <section class="hs-shein-left-col" aria-label="Ingreso y lista de pedidos Shein">
 
         <!-- Card 1: Ingreso de prenda individual (se resetea al agregar) -->
@@ -102,15 +102,15 @@
           </button>
         </div>
 
-        <!-- Card 2: Tabla de Artículos en tu Pedido -->
+        <!-- Card 2: Prendas en tu pedido (Tabla en Desktop, Lista compacta en Móviles) -->
         <div class="hs-shein-card hs-card-table">
           <div class="hs-card-table__header">
             <div class="hs-table-title-wrap">
               <h3 class="hs-table-title">
                 <i class="pi pi-shopping-bag" aria-hidden="true"></i>
-                <span>Prendas en tu pedido</span>
+                <span class="text-sm">Prendas en tu pedido</span>
               </h3>
-              <span class="hs-count-pill" [class.hs-count-pill--active]="items().length > 0">
+              <span class="hs-count-pill text-xs" [class.hs-count-pill--active]="items().length > 0">
                 {{ items().length }} {{ items().length === 1 ? 'prenda' : 'prendas' }}
               </span>
             </div>
@@ -136,7 +136,49 @@
               <span class="hs-empty-hint">Pega el link de tu primera prenda arriba y pulsa "Agregar prenda a mi lista".</span>
             </div>
           } @else {
-            <div class="hs-table-responsive">
+            <!-- Vista Móvil (< 640px): Filas adaptadas sin desborde -->
+            <div class="hs-mobile-items-list">
+              @for (item of items(); track item.id; let idx = $index) {
+                <div class="hs-mobile-item-card">
+                  <div class="hs-mobile-item-card__top">
+                    <div class="hs-mobile-item-badge-wrap">
+                      <span class="hs-idx-circle">#{{ idx + 1 }}</span>
+                      <span class="hs-size-badge">{{ item.size }}</span>
+                    </div>
+                    <button
+                      type="button"
+                      class="hs-btn-remove-item"
+                      (click)="removeItem(item.id)"
+                      [title]="'Eliminar prenda #' + (idx + 1)"
+                      [attr.aria-label]="'Eliminar prenda #' + (idx + 1)"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+
+                  <a
+                    [href]="item.link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hs-link-preview hs-link-preview--mobile"
+                    title="Abrir enlace en Shein"
+                  >
+                    <i class="pi pi-external-link" aria-hidden="true"></i>
+                    <span>{{ getShortLink(item.link) }}</span>
+                  </a>
+
+                  @if (item.notes) {
+                    <div class="hs-mobile-notes">
+                      <span class="hs-notes-label">Detalle:</span>
+                      <span class="hs-notes-text">{{ item.notes }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Vista Desktop (>= 640px): Tabla estilizada -->
+            <div class="hs-table-responsive hs-desktop-table">
               <table class="hs-orders-table">
                 <thead>
                   <tr>
