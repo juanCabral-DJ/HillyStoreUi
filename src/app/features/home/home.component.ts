@@ -3,11 +3,17 @@ import { SeoService } from '../../core';
 import { HeroComponent } from './section/hero/hero.component';
 import { SheinStepsComponent } from './section/shein-steps/shein-steps.component';
 import { StockCarouselComponent } from './section/stock-carousel/stock-carousel.component';
+import { CategoriesComponent } from './section/categories/categories.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [HeroComponent, SheinStepsComponent, StockCarouselComponent],
+  imports: [
+    HeroComponent,
+    SheinStepsComponent,
+    StockCarouselComponent,
+    CategoriesComponent,
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

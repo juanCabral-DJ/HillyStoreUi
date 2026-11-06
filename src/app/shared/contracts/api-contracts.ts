@@ -60,6 +60,17 @@ export interface UpsertCategoryRequest {
   isActive: boolean;
 }
 
+/** Tarjeta visual de categoría para la portada o navegadores de colección */
+export interface HomeCategoryCard {
+  id: string | number;
+  title: string;
+  subtitle: string;
+  slug: string;
+  routeQuery: Record<string, string>;
+  imageUrl: string;
+  badge?: string;
+}
+
 // ==========================================================
 // PRENDAS / PRODUCTOS
 // ==========================================================

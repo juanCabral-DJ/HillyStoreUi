@@ -1,0 +1,72 @@
+<section class="hs-categories-section" id="categorias">
+  <div class="hs-container">
+    <!-- Encabezado de la sección -->
+    <div
+      class="hs-categories-header"
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+    >
+      <div class="hs-categories-header__lead">
+        <span class="hs-categories-header__badge">COLECCIONES DESTACADAS</span>
+        <h2 class="hs-categories-header__title">Explora por Categoría</h2>
+        <p class="hs-categories-header__subtitle">
+          Encuentra prendas y artículos disponibles para entrega hoy en Baní,
+          o tómalo como inspiración para tus encargos de Shein.
+        </p>
+      </div>
+
+      <div class="hs-categories-header__action">
+        <a routerLink="/catalogo" class="hs-catalog-link">
+          <span>Ver catálogo completo</span>
+          <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Grilla de categorías -->
+    <div
+      class="hs-categories-grid"
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+    >
+      @for (cat of categories(); track cat.id) {
+        <a
+          [routerLink]="['/catalogo']"
+          [queryParams]="cat.routeQuery"
+          class="hs-cat-card"
+          [attr.aria-label]="'Explorar ' + cat.title"
+        >
+          <!-- Imagen de fondo -->
+          <div class="hs-cat-card__media">
+            <img
+              [src]="cat.imageUrl"
+              [alt]="cat.title"
+              class="hs-cat-card__img"
+              loading="lazy"
+              (error)="onImageError($event)"
+            />
+            <div class="hs-cat-card__overlay"></div>
+          </div>
+
+          <!-- Badge superior -->
+          @if (cat.badge) {
+            <span class="hs-cat-card__badge">{{ cat.badge }}</span>
+          }
+
+          <!-- Contenido inferior -->
+          <div class="hs-cat-card__content">
+            <h3 class="hs-cat-card__title">{{ cat.title }}</h3>
+            <p class="hs-cat-card__subtitle">{{ cat.subtitle }}</p>
+
+            <span class="hs-cat-card__cta">
+              <span>Explorar</span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </span>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
