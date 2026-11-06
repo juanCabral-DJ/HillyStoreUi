@@ -151,6 +151,15 @@ export interface ProductFilterParams {
   pageSize?: number;
 }
 
+/** Estado de filtros en la vista de catálogo público */
+export interface CatalogFilterState {
+  audience?: Audience | 'Todos';
+  categorySlug?: string;
+  size?: string;
+  search?: string;
+  page: number;
+}
+
 export interface UpsertProductSizeInput {
   label: string;
   inStock: boolean;

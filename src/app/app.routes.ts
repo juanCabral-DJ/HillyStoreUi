@@ -11,6 +11,11 @@ export const routes: Routes = [
         path: '',
         component: HomeComponent,
       },
+      {
+        path: 'catalogo',
+        loadComponent: () =>
+          import('./features/catalog').then((m) => m.CatalogListComponent),
+      },
     ],
   },
 ];

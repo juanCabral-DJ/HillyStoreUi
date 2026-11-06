@@ -57,7 +57,7 @@ export class StoreLocationComponent {
 
     return {
       isOpen: false,
-      label: 'Cerrado en este momento',
+      label: 'Cerrado',
       sub: 'Abrimos a las 9:00 a.m.',
     };
   });

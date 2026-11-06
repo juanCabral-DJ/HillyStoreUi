@@ -1,0 +1,313 @@
+<div class="hs-catalog-page">
+  <!-- Encabezado de la página -->
+  <header class="hs-catalog-hero">
+    <div class="hs-container">
+      <div
+        class="hs-catalog-hero__inner"
+        pAnimateOnScroll
+        enterClass="hs-enter-fade-up"
+        [once]="true"
+      >
+        <span class="hs-catalog-hero__badge">ENTREGA INMEDIATA EN BANÍ</span>
+        <h1 class="hs-catalog-hero__title">Catálogo en Stock</h1>
+        <p class="hs-catalog-hero__subtitle">
+          Prendas listas para entrega hoy mismo. Puedes probártelas en nuestro local en Baní
+          o pedir con envío local a tu puerta por WhatsApp.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal con Filtros y Grilla -->
+  <main class="hs-container hs-catalog-main">
+    <!-- Barra de Filtros Superior -->
+    <section class="hs-filters-section" aria-label="Filtros del catálogo">
+      <!-- Fila 1: Pestañas de Público (Todos / Mujeres / Hombres) + Buscador -->
+      <div class="hs-filters-top">
+        <div class="hs-audience-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            class="hs-tab-btn"
+            [class.hs-tab-btn--active]="selectedAudience() === 'Todos'"
+            (click)="setAudience('Todos')"
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="hs-tab-btn"
+            [class.hs-tab-btn--active]="selectedAudience() === 'Mujeres'"
+            (click)="setAudience('Mujeres')"
+          >
+            Mujeres
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="hs-tab-btn"
+            [class.hs-tab-btn--active]="selectedAudience() === 'Hombres'"
+            (click)="setAudience('Hombres')"
+          >
+            Hombres
+          </button>
+        </div>
+
+        <!-- Buscador -->
+        <div class="hs-search-box">
+          <i class="pi pi-search hs-search-icon" aria-hidden="true"></i>
+          <input
+            type="search"
+            class="hs-search-input"
+            placeholder="Buscar por prenda, estilo o categoría..."
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearchSubmit()"
+            aria-label="Buscar en el catálogo"
+          />
+          @if (searchQuery()) {
+            <button
+              type="button"
+              class="hs-search-clear"
+              (click)="clearSearch()"
+              aria-label="Limpiar búsqueda"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Fila 2: Chips de Categorías -->
+      <div class="hs-categories-row" aria-label="Categorías">
+        <button
+          type="button"
+          class="hs-cat-chip"
+          [class.hs-cat-chip--active]="selectedCategory() === 'todas'"
+          (click)="setCategory('todas')"
+        >
+          Todas
+        </button>
+        @for (cat of categories(); track cat.id) {
+          <button
+            type="button"
+            class="hs-cat-chip"
+            [class.hs-cat-chip--active]="selectedCategory() === cat.slug"
+            (click)="setCategory(cat.slug)"
+          >
+            {{ cat.name }}
+          </button>
+        }
+      </div>
+
+      <!-- Fila 3: Filtro por Tallas -->
+      <div class="hs-sizes-row" aria-label="Filtro de tallas">
+        <span class="hs-sizes-label">Tallas:</span>
+        <div class="hs-sizes-list">
+          @for (size of availableSizes; track size) {
+            <button
+              type="button"
+              class="hs-size-btn"
+              [class.hs-size-btn--active]="selectedSize() === size"
+              (click)="setSize(size)"
+            >
+              {{ size === 'todas' ? 'Todas' : size }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Barra de Estado y Limpieza -->
+      <div class="hs-results-bar">
+        <span class="hs-results-count">
+          @if (loading()) {
+            Cargando prendas...
+          } @else {
+            Mostrando <strong>{{ products().length }}</strong> de <strong>{{ totalCount() }}</strong> prendas
+          }
+        </span>
+
+        @if (selectedAudience() !== 'Todos' || selectedCategory() !== 'todas' || selectedSize() !== 'todas' || searchQuery()) {
+          <button type="button" class="hs-clear-all-btn" (click)="clearAllFilters()">
+            <i class="pi pi-filter-slash" aria-hidden="true"></i>
+            <span>Limpiar todos los filtros</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- Estado: Cargando (Skeletons) -->
+    @if (loading()) {
+      <div class="hs-catalog-grid" aria-hidden="true">
+        @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+          <div class="hs-catalog-skeleton">
+            <p-skeleton width="100%" height="320px" borderRadius="1rem" />
+            <div class="hs-catalog-skeleton__body">
+              <p-skeleton width="35%" height="0.875rem" />
+              <p-skeleton width="85%" height="1.25rem" />
+              <p-skeleton width="50%" height="1.5rem" />
+              <p-skeleton width="100%" height="2.5rem" borderRadius="0.75rem" />
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (products().length === 0) {
+      <!-- Estado Vacío -->
+      <div class="hs-catalog-empty" pAnimateOnScroll enterClass="hs-enter-fade-in" [once]="true">
+        <div class="hs-catalog-empty__icon">
+          <i class="pi pi-search" aria-hidden="true"></i>
+        </div>
+        <h2 class="hs-catalog-empty__title">No encontramos prendas disponibles</h2>
+        <p class="hs-catalog-empty__desc">
+          No hay artículos que coincidan con los filtros seleccionados. Intenta cambiar de categoría,
+          talla o limpiar los filtros.
+        </p>
+        <button type="button" class="hs-btn-reset" (click)="clearAllFilters()">
+          Ver todo el catálogo en stock
+        </button>
+      </div>
+    } @else {
+      <!-- Grilla de Productos -->
+      <div
+        class="hs-catalog-grid"
+        pAnimateOnScroll
+        enterClass="hs-enter-fade-up"
+        [once]="true"
+      >
+        @for (product of products(); track product.id) {
+          <article class="hs-product-item">
+            <!-- Imagen con enlace -->
+            <div class="hs-product-item__media">
+              <a
+                [routerLink]="['/catalogo', product.slug]"
+                class="hs-product-item__img-link"
+                [attr.aria-label]="'Ver detalle de ' + product.name"
+              >
+                <img
+                  [src]="product.primaryImageUrl"
+                  [alt]="product.name"
+                  class="hs-product-item__img"
+                  loading="lazy"
+                  (error)="onImageError($event)"
+                />
+              </a>
+
+              <!-- Badges flotantes -->
+              <div class="hs-product-item__badges">
+                <span class="hs-tag-stock">
+                  <span class="hs-dot"></span>
+                  En Stock
+                </span>
+                <span
+                  class="hs-tag-audience"
+                  [ngClass]="'hs-tag-audience--' + product.audience.toLowerCase()"
+                >
+                  {{ product.audience }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Contenido del Producto -->
+            <div class="hs-product-item__body">
+              <span class="hs-product-item__category">{{ product.categoryName }}</span>
+
+              <h2 class="hs-product-item__title">
+                <a [routerLink]="['/catalogo', product.slug]">
+                  {{ product.name }}
+                </a>
+              </h2>
+
+              <!-- Tallas -->
+              @if (product.availableSizes && product.availableSizes.length > 0) {
+                <div class="hs-product-item__sizes">
+                  <span class="hs-size-label">Tallas:</span>
+                  <div class="hs-size-list">
+                    @for (s of product.availableSizes; track s) {
+                      <span class="hs-size-chip">{{ s }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Footer con Precio y Botón WhatsApp -->
+              <div class="hs-product-item__footer">
+                <div class="hs-product-item__price">
+                  <span class="hs-currency">RD$</span>
+                  <span class="hs-amount">{{ product.price | number:'1.0-0' }}</span>
+                </div>
+
+                <div class="hs-product-item__actions">
+                  <button
+                    type="button"
+                    class="hs-wa-order-btn"
+                    (click)="onOrderWhatsApp(product, $event)"
+                    aria-label="Pedir por WhatsApp"
+                  >
+                    <i class="pi pi-whatsapp" aria-hidden="true"></i>
+                    <span>Pedir</span>
+                  </button>
+
+                  <a
+                    [routerLink]="['/catalogo', product.slug]"
+                    class="hs-view-detail-btn"
+                    aria-label="Ver ficha de producto"
+                  >
+                    <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <nav class="hs-pagination" aria-label="Navegación de páginas">
+          <button
+            type="button"
+            class="hs-page-nav-btn"
+            [disabled]="currentPage() === 1"
+            (click)="goToPage(currentPage() - 1)"
+            aria-label="Página anterior"
+          >
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+            <span>Anterior</span>
+          </button>
+
+          <span class="hs-page-indicator">
+            Página <strong>{{ currentPage() }}</strong> de <strong>{{ totalPages() }}</strong>
+          </span>
+
+          <button
+            type="button"
+            class="hs-page-nav-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="goToPage(currentPage() + 1)"
+            aria-label="Página siguiente"
+          >
+            <span>Siguiente</span>
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </nav>
+      }
+    }
+
+    <!-- Banner Inferior: Pedidos de Shein si no encontró lo que buscaba -->
+    <aside class="hs-shein-notice" pAnimateOnScroll enterClass="hs-enter-scale" [once]="true">
+      <div class="hs-shein-notice__info">
+        <span class="hs-shein-notice__tag">¿BUSCAS OTRO ESTILO O TALLA?</span>
+        <h3 class="hs-shein-notice__title">Te lo traemos de Shein con solo 50% de anticipo</h3>
+        <p class="hs-shein-notice__desc">
+          Si no ves la prenda que buscas en stock, encárgala directamente desde Shein. Te la traemos a Baní
+          en 15 a 20 días sin necesidad de tarjetas internacionales.
+        </p>
+      </div>
+
+      <a routerLink="/pedidos-shein" class="hs-shein-notice__btn">
+        <span>Cómo pedir por Shein</span>
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      </a>
+    </aside>
+  </main>
+</div>
