@@ -1,11 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { SeoService } from '../../core';
 import { HeroComponent } from './section/hero/hero.component';
+import { SheinStepsComponent } from './section/shein-steps/shein-steps.component';
+import { StockCarouselComponent } from './section/stock-carousel/stock-carousel.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [HeroComponent],
+  imports: [HeroComponent, SheinStepsComponent, StockCarouselComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

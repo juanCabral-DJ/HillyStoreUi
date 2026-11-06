@@ -1,0 +1,147 @@
+<section class="hs-stock-section" id="en-stock">
+  <div class="hs-container">
+    <!-- Encabezado de la sección -->
+    <div
+      class="hs-stock-header"
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+    >
+      <div class="hs-stock-header__lead">
+        <span class="hs-stock-header__badge">ENTREGA INMEDIATA</span>
+        <h2 class="hs-stock-header__title">Prendas en Stock en Baní</h2>
+        <p class="hs-stock-header__subtitle">
+          Sin esperas de envío. Puedes probártelas en nuestra tienda física o pedirlas
+          para envío local directo a tu puerta hoy mismo.
+        </p>
+      </div>
+
+      <div class="hs-stock-header__action">
+        <a routerLink="/catalogo" class="hs-catalog-link">
+          <span>Ver catálogo completo</span>
+          <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Skeletons durante la carga -->
+    @if (loading()) {
+      <div class="hs-skeleton-grid" aria-hidden="true">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="hs-product-skeleton">
+            <p-skeleton width="100%" height="280px" borderRadius="1rem" />
+            <div class="hs-product-skeleton__body">
+              <p-skeleton width="40%" height="0.875rem" />
+              <p-skeleton width="85%" height="1.25rem" />
+              <p-skeleton width="50%" height="1.5rem" />
+              <p-skeleton width="100%" height="2.5rem" borderRadius="0.75rem" />
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Carrusel de prendas -->
+      <div
+        class="hs-carousel-wrapper"
+        pAnimateOnScroll
+        enterClass="hs-enter-fade-up"
+        [once]="true"
+      >
+        <p-carousel
+          [value]="products()"
+          [numVisible]="4"
+          [numScroll]="1"
+          [circular]="true"
+          [responsiveOptions]="responsiveOptions"
+          [autoplayInterval]="5000"
+          [showIndicators]="true"
+        >
+          <ng-template #item let-product>
+            <article class="hs-product-card">
+              <!-- Envoltura de imagen -->
+              <div class="hs-product-card__media">
+                <a
+                  [routerLink]="['/catalogo', product.slug]"
+                  class="hs-product-card__img-link"
+                  [attr.aria-label]="'Ver detalle de ' + product.name"
+                >
+                  <img
+                    [src]="product.primaryImageUrl"
+                    [alt]="product.name"
+                    class="hs-product-card__img"
+                    loading="lazy"
+                    (error)="onImageError($event)"
+                  />
+                </a>
+
+                <!-- Badges flotantes sobre la foto -->
+                <div class="hs-product-card__badges">
+                  <span class="hs-tag-stock">
+                    <span class="hs-dot"></span>
+                    En Stock
+                  </span>
+                  <span class="hs-tag-audience" [ngClass]="'hs-tag-audience--' + product.audience.toLowerCase()">
+                    {{ product.audience }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Contenido de la tarjeta -->
+              <div class="hs-product-card__body">
+                <span class="hs-product-card__category">{{ product.categoryName }}</span>
+
+                <h3 class="hs-product-card__title">
+                  <a [routerLink]="['/catalogo', product.slug]">
+                    {{ product.name }}
+                  </a>
+                </h3>
+
+                <!-- Tallas disponibles -->
+                @if (product.availableSizes && product.availableSizes.length > 0) {
+                  <div class="hs-product-card__sizes">
+                    <span class="hs-size-label">Tallas:</span>
+                    <div class="hs-size-list">
+                      @for (size of product.availableSizes; track size) {
+                        <span class="hs-size-chip">{{ size }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Precio y acción -->
+                <div class="hs-product-card__footer">
+                  <div class="hs-product-card__price">
+                    <span class="hs-currency">RD$</span>
+                    <span class="hs-amount">{{ product.price | number:'1.0-0' }}</span>
+                  </div>
+
+                  <div class="hs-product-card__actions">
+                    <button
+                      type="button"
+                      class="hs-wa-btn"
+                      (click)="onOrderWhatsApp(product, $event)"
+                      pTooltip="Pedir por WhatsApp"
+                      tooltipPosition="top"
+                      aria-label="Pedir por WhatsApp"
+                    >
+                      <i class="pi pi-whatsapp" aria-hidden="true"></i>
+                      <span>Pedir</span>
+                    </button>
+
+                    <a
+                      [routerLink]="['/catalogo', product.slug]"
+                      class="hs-detail-btn"
+                      aria-label="Ver ficha del producto"
+                    >
+                      <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </ng-template>
+        </p-carousel>
+      </div>
+    }
+  </div>
+</section>
