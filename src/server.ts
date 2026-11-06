@@ -20,6 +20,7 @@ app.set('trust proxy', true);
 const angularApp = new AngularNodeAppEngine({
   allowedHosts: [
     'localhost',
+    'localhost:4000',
     'localhost:4200',
     'localhost:10000',
     'hillystoreui.onrender.com',

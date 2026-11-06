@@ -1,6 +1,7 @@
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import {
   AdminProductDto,
   AuthLoginRequest,
@@ -21,16 +22,33 @@ import {
   UpsertCategoryRequest,
   UpsertFaqRequest,
 } from '../../shared/contracts';
+import {
+  FALLBACK_CATEGORIES,
+  FALLBACK_FAQS,
+  FALLBACK_PRODUCTS,
+  FALLBACK_SETTINGS,
+  filterFallbackProducts,
+  getFallbackProductDetail,
+} from './api.fallback';
 import { API_BASE_URL } from './api.tokens';
 
 /**
  * Cliente HTTP centralizado de HillyStore.
  * Un método por endpoint según los contratos de la sección 6 del plan.
+ * Cuenta con resiliencia en SSR para evitar bucles recursivos cuando la API no esté en línea.
  */
 @Injectable({ providedIn: 'root' })
 export class ApiClient {
   private readonly http = inject(HttpClient);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly baseUrl = inject(API_BASE_URL).replace(/\/+$/, '');
+  private readonly isAbsoluteApiUrl =
+    this.baseUrl.startsWith('http://') || this.baseUrl.startsWith('https://');
+
+  private get shouldUseFallbackOnSsr(): boolean {
+    return !this.isBrowser && !this.isAbsoluteApiUrl;
+  }
 
   // ==========================================================
   // ENDPOINTS PÚBLICOS
@@ -38,6 +56,9 @@ export class ApiClient {
 
   /** GET /api/products — Catálogo con filtros y paginación (12 por página, máx. 48) */
   getProducts(filters?: ProductFilterParams): Observable<PaginatedResponse<ProductListItemDto>> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(filterFallbackProducts(filters));
+    }
     return this.http.get<PaginatedResponse<ProductListItemDto>>(`${this.baseUrl}/products`, {
       params: this.toHttpParams(filters),
     });
@@ -45,11 +66,17 @@ export class ApiClient {
 
   /** GET /api/products/featured — Destacadas del inicio (máx. 8) */
   getFeaturedProducts(): Observable<ProductListItemDto[]> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(FALLBACK_PRODUCTS.filter((p) => p.isFeatured).slice(0, 8));
+    }
     return this.http.get<ProductListItemDto[]>(`${this.baseUrl}/products/featured`);
   }
 
   /** GET /api/products/{slug} — Detalle de prenda por slug */
   getProductBySlug(slug: string): Observable<ProductDetailDto> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(getFallbackProductDetail(slug));
+    }
     return this.http.get<ProductDetailDto>(
       `${this.baseUrl}/products/${encodeURIComponent(slug)}`
     );
@@ -57,16 +84,25 @@ export class ApiClient {
 
   /** GET /api/categories — Categorías activas */
   getCategories(): Observable<CategoryDto[]> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(FALLBACK_CATEGORIES);
+    }
     return this.http.get<CategoryDto[]>(`${this.baseUrl}/categories`);
   }
 
   /** GET /api/settings — Ajustes de la tienda */
   getSettings(): Observable<StoreSettingsDto> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(FALLBACK_SETTINGS);
+    }
     return this.http.get<StoreSettingsDto>(`${this.baseUrl}/settings`);
   }
 
   /** GET /api/faqs — Preguntas frecuentes activas */
   getFaqs(): Observable<FaqDto[]> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(FALLBACK_FAQS);
+    }
     return this.http.get<FaqDto[]>(`${this.baseUrl}/faqs`);
   }
 
@@ -81,6 +117,13 @@ export class ApiClient {
 
   /** GET /api/admin/products — Lista de prendas en el panel admin */
   getAdminProducts(filters?: ProductFilterParams): Observable<PaginatedResponse<AdminProductDto>> {
+    if (this.shouldUseFallbackOnSsr) {
+      const paginated = filterFallbackProducts(filters);
+      return of({
+        ...paginated,
+        items: paginated.items.map((i) => getFallbackProductDetail(i.slug)),
+      });
+    }
     return this.http.get<PaginatedResponse<AdminProductDto>>(`${this.baseUrl}/admin/products`, {
       params: this.toHttpParams(filters),
     });
@@ -156,6 +199,9 @@ export class ApiClient {
 
   /** GET /api/admin/categories — Todas las categorías (activas e inactivas) */
   getAdminCategories(): Observable<CategoryDto[]> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(FALLBACK_CATEGORIES);
+    }
     return this.http.get<CategoryDto[]>(`${this.baseUrl}/admin/categories`);
   }
 
@@ -176,6 +222,9 @@ export class ApiClient {
 
   /** GET /api/admin/faqs — Todas las preguntas frecuentes */
   getAdminFaqs(): Observable<FaqDto[]> {
+    if (this.shouldUseFallbackOnSsr) {
+      return of(FALLBACK_FAQS);
+    }
     return this.http.get<FaqDto[]>(`${this.baseUrl}/admin/faqs`);
   }
 
