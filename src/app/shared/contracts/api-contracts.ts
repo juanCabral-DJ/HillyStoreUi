@@ -71,6 +71,16 @@ export interface HomeCategoryCard {
   badge?: string;
 }
 
+/** Ítem informativo de entregas, pagos y garantías */
+export interface DeliveryPaymentFeature {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  badge?: string;
+  highlight?: string;
+}
+
 // ==========================================================
 // PRENDAS / PRODUCTOS
 // ==========================================================

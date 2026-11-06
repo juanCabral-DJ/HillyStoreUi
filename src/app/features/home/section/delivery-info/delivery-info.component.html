@@ -1,0 +1,77 @@
+<section class="hs-delivery-section" id="entregas-pagos">
+  <div class="hs-container">
+    <!-- Encabezado de la sección -->
+    <div
+      class="hs-delivery-header"
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+    >
+      <span class="hs-delivery-header__badge">TRANSPARENCIA Y COMODIDAD</span>
+      <h2 class="hs-delivery-header__title">Pagos Locales y Entregas en Baní</h2>
+      <p class="hs-delivery-header__subtitle">
+        Sin complicaciones con tarjetas internacionales, sin costos ocultos y con la
+        seguridad de una tienda física donde siempre puedes encontrarnos.
+      </p>
+    </div>
+
+    <!-- Grilla de características -->
+    <div class="hs-delivery-grid">
+      @for (item of features(); track item.id) {
+        <article
+          class="hs-delivery-card"
+          pAnimateOnScroll
+          enterClass="hs-enter-fade-up"
+          [once]="true"
+        >
+          <div class="hs-delivery-card__top">
+            <div class="hs-delivery-card__icon-box">
+              <i [class]="item.icon" aria-hidden="true"></i>
+            </div>
+            @if (item.badge) {
+              <span class="hs-delivery-card__badge">{{ item.badge }}</span>
+            }
+          </div>
+
+          <h3 class="hs-delivery-card__title">{{ item.title }}</h3>
+          <p class="hs-delivery-card__desc">{{ item.description }}</p>
+
+          @if (item.highlight) {
+            <div class="hs-delivery-card__highlight">
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              <span>{{ item.highlight }}</span>
+            </div>
+          }
+        </article>
+      }
+    </div>
+
+    <!-- Barra de Bancos y Seguridad -->
+    <div
+      class="hs-delivery-banner"
+      pAnimateOnScroll
+      enterClass="hs-enter-scale"
+      [once]="true"
+    >
+      <div class="hs-delivery-banner__info">
+        <div class="hs-delivery-banner__icon">
+          <i class="pi pi-verified" aria-hidden="true"></i>
+        </div>
+        <div class="hs-delivery-banner__text">
+          <strong>Bancos dominicanos disponibles para transferencias:</strong>
+          <span>Banco Popular Dominicano · Banreservas · Banco BHD · Pago contra entrega en efectivo</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="hs-delivery-banner__btn"
+        (click)="onConsultPayment()"
+        aria-label="Consultar cuentas por WhatsApp"
+      >
+        <i class="pi pi-whatsapp" aria-hidden="true"></i>
+        <span>Consultar cuentas bancarias</span>
+      </button>
+    </div>
+  </div>
+</section>
