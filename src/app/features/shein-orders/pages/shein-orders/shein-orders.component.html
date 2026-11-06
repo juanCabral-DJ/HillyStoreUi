@@ -6,8 +6,8 @@
         <span class="hs-shein-hero__badge">SIN TARJETA INTERNACIONAL NI CASILLERO</span>
         <h1 class="hs-shein-hero__title">Haz tu Pedido de Shein a Baní</h1>
         <p class="hs-shein-hero__subtitle">
-          Pega los enlaces o códigos de las prendas que te gusten de Shein. Te confirmamos el
-          total exacto en pesos dominicanos (RD$) y abonas solo el
+          Agrega una por una tus prendas de Shein. Se irán sumando a tu lista y te cotizamos
+          el total exacto en pesos dominicanos (RD$) con solo el
           {{ settingsService.depositPercentage() }}% de anticipo.
         </p>
       </div>
@@ -16,129 +16,242 @@
 
   <main class="hs-container hs-shein-main">
     <div class="hs-shein-grid">
-      <!-- Columna 1: Formulario Interactivo -->
-      <section class="hs-shein-form-card" aria-label="Formulario de pedidos Shein">
-        <h2 class="hs-form-title">Tus artículos de Shein</h2>
-        <p class="hs-form-subtitle">
-          Agrega todos los productos que deseas en un solo mensaje de WhatsApp.
-        </p>
+      <!-- Columna 1: Formulario Único + Tabla de Artículos Agregados -->
+      <section class="hs-shein-left-col" aria-label="Ingreso y lista de pedidos Shein">
 
-        <!-- Nombre del cliente (opcional) -->
-        <div class="hs-field-group">
-          <label for="customerName" class="hs-label">Tu nombre (opcional):</label>
-          <input
-            id="customerName"
-            type="text"
-            class="hs-input"
-            placeholder="Ej. María Pérez"
-            [(ngModel)]="customerName"
-          />
+        <!-- Card 1: Ingreso de prenda individual (se resetea al agregar) -->
+        <div class="hs-shein-card hs-card-entry">
+          <div class="hs-card-entry__header">
+            <h2 class="hs-form-title">
+              <i class="pi pi-plus-circle" aria-hidden="true"></i>
+              <span>Agregar Prenda de Shein</span>
+            </h2>
+            <span class="hs-card-entry__tag">Paso 1</span>
+          </div>
+          <p class="hs-form-subtitle">
+            Copia el enlace o código en la app de Shein y agrégalo a tu pedido.
+          </p>
+
+          <!-- Input Enlace o código de Shein -->
+          <div class="hs-field-group">
+            <label for="sheinItemLink" class="hs-label">
+              Link o código del artículo: <span class="hs-req">*</span>
+            </label>
+            <div class="hs-input-icon-wrap">
+              <i class="pi pi-link" aria-hidden="true"></i>
+              <input
+                id="sheinItemLink"
+                type="url"
+                class="hs-input hs-input--with-icon"
+                placeholder="Pega el link aquí (ej. https://shein.top/... o código)"
+                [(ngModel)]="currentLink"
+                (keydown.enter)="addCurrentItem()"
+              />
+            </div>
+          </div>
+
+          <!-- Fila: Talla y Notas -->
+          <div class="hs-item-row">
+            <div class="hs-field-group hs-field-group--size">
+              <label for="sheinItemSize" class="hs-label">Talla: <span class="hs-req">*</span></label>
+              <select id="sheinItemSize" class="hs-select" [(ngModel)]="currentSize">
+                @for (s of availableSizes; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="hs-field-group hs-field-group--notes">
+              <label for="sheinItemNotes" class="hs-label">Color o detalle (opcional):</label>
+              <input
+                id="sheinItemNotes"
+                type="text"
+                class="hs-input"
+                placeholder="Ej. Negro, estampado floral..."
+                [(ngModel)]="currentNotes"
+                (keydown.enter)="addCurrentItem()"
+              />
+            </div>
+          </div>
+
+          <!-- Mensaje de error de validación del input -->
+          @if (inputError()) {
+            <div class="hs-alert-error" role="alert">
+              <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+              <span>{{ inputError() }}</span>
+            </div>
+          }
+
+          <!-- Mensaje temporal de prenda agregada -->
+          @if (itemAddedNotice()) {
+            <div class="hs-alert-success" role="status">
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              <span>{{ itemAddedNotice() }}</span>
+            </div>
+          }
+
+          <!-- Botón Agregar a la Lista -->
+          <button
+            type="button"
+            class="hs-btn-add-to-list"
+            (click)="addCurrentItem()"
+            aria-label="Agregar prenda a la lista"
+          >
+            <i class="pi pi-plus" aria-hidden="true"></i>
+            <span>Agregar prenda a mi lista</span>
+          </button>
         </div>
 
-        <!-- Lista de Artículos -->
-        <div class="hs-items-list">
-          @for (item of items(); track item.id; let idx = $index) {
-            <div class="hs-item-card">
-              <div class="hs-item-card__header">
-                <span class="hs-item-num">Artículo #{{ idx + 1 }}</span>
-                @if (items().length > 1) {
-                  <button
-                    type="button"
-                    class="hs-item-remove-btn"
-                    (click)="removeItem(item.id)"
-                    aria-label="Eliminar este artículo"
-                  >
-                    <i class="pi pi-trash" aria-hidden="true"></i>
-                    <span>Eliminar</span>
-                  </button>
-                }
-              </div>
+        <!-- Card 2: Tabla de Artículos en tu Pedido -->
+        <div class="hs-shein-card hs-card-table">
+          <div class="hs-card-table__header">
+            <div class="hs-table-title-wrap">
+              <h3 class="hs-table-title">
+                <i class="pi pi-shopping-bag" aria-hidden="true"></i>
+                <span>Prendas en tu pedido</span>
+              </h3>
+              <span class="hs-count-pill" [class.hs-count-pill--active]="items().length > 0">
+                {{ items().length }} {{ items().length === 1 ? 'prenda' : 'prendas' }}
+              </span>
+            </div>
 
-              <!-- Enlace o código de Shein -->
-              <div class="hs-field-group">
-                <label [for]="'link-' + item.id" class="hs-label">
-                  Link o código de prenda en Shein: <span class="hs-req">*</span>
-                </label>
-                <div class="hs-input-icon-wrap">
-                  <i class="pi pi-link" aria-hidden="true"></i>
-                  <input
-                    [id]="'link-' + item.id"
-                    type="url"
-                    class="hs-input hs-input--with-icon"
-                    placeholder="Pega el link de Shein aquí (ej. https://shein.top/...)"
-                    [(ngModel)]="item.link"
-                  />
-                </div>
-              </div>
+            @if (items().length > 0) {
+              <button
+                type="button"
+                class="hs-btn-clear"
+                (click)="clearAllItems()"
+                title="Vaciar toda la lista"
+              >
+                Limpiar lista
+              </button>
+            }
+          </div>
 
-              <!-- Fila: Talla y Notas de color/variante -->
-              <div class="hs-item-row">
-                <div class="hs-field-group hs-field-group--size">
-                  <label [for]="'size-' + item.id" class="hs-label">Talla: <span class="hs-req">*</span></label>
-                  <select [id]="'size-' + item.id" class="hs-select" [(ngModel)]="item.size">
-                    @for (s of availableSizes; track s) {
-                      <option [value]="s">{{ s }}</option>
-                    }
-                  </select>
-                </div>
-
-                <div class="hs-field-group hs-field-group--notes">
-                  <label [for]="'notes-' + item.id" class="hs-label">Color o detalle (opcional):</label>
-                  <input
-                    [id]="'notes-' + item.id"
-                    type="text"
-                    class="hs-input"
-                    placeholder="Ej. Color negro, estampado floral..."
-                    [(ngModel)]="item.notes"
-                  />
-                </div>
+          @if (items().length === 0) {
+            <div class="hs-empty-table-box">
+              <div class="hs-empty-icon">
+                <i class="pi pi-inbox" aria-hidden="true"></i>
               </div>
+              <p class="hs-empty-text">Tu lista aún está vacía.</p>
+              <span class="hs-empty-hint">Pega el link de tu primera prenda arriba y pulsa "Agregar prenda a mi lista".</span>
+            </div>
+          } @else {
+            <div class="hs-table-responsive">
+              <table class="hs-orders-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Prenda / Link</th>
+                    <th>Talla</th>
+                    <th>Detalles</th>
+                    <th class="text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of items(); track item.id; let idx = $index) {
+                    <tr>
+                      <td class="hs-td-idx">
+                        <span class="hs-idx-circle">{{ idx + 1 }}</span>
+                      </td>
+                      <td class="hs-td-link">
+                        <a
+                          [href]="item.link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="hs-link-preview"
+                          title="Abrir enlace en Shein"
+                        >
+                          <i class="pi pi-external-link" aria-hidden="true"></i>
+                          <span>{{ getShortLink(item.link) }}</span>
+                        </a>
+                      </td>
+                      <td class="hs-td-size">
+                        <span class="hs-size-badge">{{ item.size }}</span>
+                      </td>
+                      <td class="hs-td-notes">
+                        <span class="hs-notes-text">{{ item.notes || '—' }}</span>
+                      </td>
+                      <td class="hs-td-action text-right">
+                        <button
+                          type="button"
+                          class="hs-btn-remove-item"
+                          (click)="removeItem(item.id)"
+                          [title]="'Eliminar prenda #' + (idx + 1)"
+                          [attr.aria-label]="'Eliminar prenda #' + (idx + 1)"
+                        >
+                          <i class="pi pi-trash" aria-hidden="true"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
             </div>
           }
         </div>
 
-        <!-- Botón para agregar otro artículo -->
-        <button type="button" class="hs-btn-add-item" (click)="addItem()">
-          <i class="pi pi-plus" aria-hidden="true"></i>
-          <span>Agregar otro artículo de Shein</span>
-        </button>
+        <!-- Card 3: Datos de contacto y Envío a WhatsApp -->
+        <div class="hs-shein-card hs-card-checkout">
+          <h3 class="hs-checkout-title">
+            <i class="pi pi-send" aria-hidden="true"></i>
+            <span>Completar y Enviar Pedido</span>
+          </h3>
 
-        <!-- Notas generales del pedido -->
-        <div class="hs-field-group hs-field-group--general">
-          <label for="generalNotes" class="hs-label">Notas o preguntas adicionales:</label>
-          <textarea
-            id="generalNotes"
-            class="hs-textarea"
-            rows="2"
-            placeholder="¿Prefieres retiro en tienda o envío a domicilio en Baní?"
-            [(ngModel)]="generalNotes"
-          ></textarea>
-        </div>
-
-        <!-- Mensaje de error si falta link -->
-        @if (errorMessage()) {
-          <div class="hs-alert-error" role="alert">
-            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-            <span>{{ errorMessage() }}</span>
+          <!-- Nombre del cliente (opcional) -->
+          <div class="hs-field-group">
+            <label for="customerName" class="hs-label">Tu nombre (opcional):</label>
+            <input
+              id="customerName"
+              type="text"
+              class="hs-input"
+              placeholder="Ej. María Pérez"
+              [(ngModel)]="customerName"
+            />
           </div>
-        }
 
-        <!-- Botón Principal: Enviar a WhatsApp -->
-        <button
-          type="button"
-          class="hs-btn-submit-wa"
-          (click)="onSubmitOrder()"
-          aria-label="Enviar lista de artículos por WhatsApp"
-        >
-          <i class="pi pi-whatsapp" aria-hidden="true"></i>
-          <span>Enviar pedido a WhatsApp ({{ items().length }} {{ items().length === 1 ? 'artículo' : 'artículos' }})</span>
-        </button>
+          <!-- Notas generales del pedido -->
+          <div class="hs-field-group">
+            <label for="generalNotes" class="hs-label">Notas o preguntas adicionales (opcional):</label>
+            <textarea
+              id="generalNotes"
+              class="hs-textarea"
+              rows="2"
+              placeholder="¿Prefieres retiro en tienda en El Llano o envío local en Baní?"
+              [(ngModel)]="generalNotes"
+            ></textarea>
+          </div>
+
+          <!-- Mensaje de error general si no hay prendas -->
+          @if (orderError()) {
+            <div class="hs-alert-error" role="alert">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              <span>{{ orderError() }}</span>
+            </div>
+          }
+
+          <!-- Botón Principal WhatsApp -->
+          <button
+            type="button"
+            class="hs-btn-submit-wa"
+            (click)="onSubmitOrder()"
+            [attr.aria-label]="'Enviar pedido de ' + items().length + ' artículos a WhatsApp'"
+          >
+            <i class="pi pi-whatsapp" aria-hidden="true"></i>
+            <span>
+              @if (items().length === 0) {
+                Enviar pedido a WhatsApp
+              } @else {
+                Enviar pedido a WhatsApp ({{ items().length }} {{ items().length === 1 ? 'prenda' : 'prendas' }})
+              }
+            </span>
+          </button>
+        </div>
       </section>
 
       <!-- Columna 2: Resumen y Beneficios del Servicio -->
       <aside class="hs-shein-summary-col">
         <!-- Tarjeta de Condiciones Claras -->
-        <div class="hs-summary-card">
+        <div class="hs-shein-card hs-summary-card">
           <h3 class="hs-summary-title">Cómo funciona tu encargo</h3>
 
           <ul class="hs-conditions-list">
@@ -161,8 +274,8 @@
             <li class="hs-condition-item">
               <span class="hs-cond-icon">📍</span>
               <div>
-                <strong>Retiro en local o envío local</strong>
-                <span>Pasa por nuestro local en {{ settingsService.settings().address }} o pídelo a tu casa.</span>
+                <strong>Retiro en tienda o envío local</strong>
+                <span>Pasa por nuestro local en {{ settingsService.settings().address }} o pídelo a tu casa en Baní.</span>
               </div>
             </li>
 
@@ -184,7 +297,7 @@
         </div>
 
         <!-- Tip: Cómo copiar el link de Shein -->
-        <div class="hs-tip-box">
+        <div class="hs-shein-card hs-tip-box">
           <div class="hs-tip-box__header">
             <i class="pi pi-lightbulb" aria-hidden="true"></i>
             <strong>¿Cómo copiar el link en la App de Shein?</strong>

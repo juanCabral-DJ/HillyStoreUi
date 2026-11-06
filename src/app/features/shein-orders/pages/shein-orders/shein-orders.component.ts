@@ -19,14 +19,21 @@ export class SheinOrdersComponent implements OnInit {
   protected readonly settingsService = inject(SettingsService);
   private readonly seo = inject(SeoService);
 
+  // Formulario único para ingresar una prenda
+  readonly currentLink = signal<string>('');
+  readonly currentSize = signal<string>('S');
+  readonly currentNotes = signal<string>('');
+  readonly inputError = signal<string | null>(null);
+  readonly itemAddedNotice = signal<string | null>(null);
+
+  // Lista acumulada de prendas agregadas
+  readonly items = signal<SheinFormItem[]>([]);
+
+  // Datos del cliente y notas generales
   readonly customerName = signal<string>('');
   readonly generalNotes = signal<string>('');
   readonly submitted = signal<boolean>(false);
-  readonly errorMessage = signal<string | null>(null);
-
-  readonly items = signal<SheinFormItem[]>([
-    { id: 'item-1', link: '', size: 'S', notes: '' },
-  ]);
+  readonly orderError = signal<string | null>(null);
 
   readonly availableSizes: string[] = [
     'XS',
@@ -50,35 +57,75 @@ export class SheinOrdersComponent implements OnInit {
     });
   }
 
-  addItem(): void {
-    const newId = `item-${Date.now()}`;
-    this.items.update((curr) => [
-      ...curr,
-      { id: newId, link: '', size: 'S', notes: '' },
-    ]);
+  addCurrentItem(): void {
+    const link = this.currentLink().trim();
+
+    if (!link) {
+      this.inputError.set('Por favor pega el enlace o código del producto de Shein.');
+      return;
+    }
+
+    const newItem: SheinFormItem = {
+      id: `shein-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      link,
+      size: this.currentSize(),
+      notes: this.currentNotes().trim() || undefined,
+    };
+
+    this.items.update((curr) => [...curr, newItem]);
+
+    // Resetear formulario para el siguiente artículo
+    this.currentLink.set('');
+    this.currentSize.set('S');
+    this.currentNotes.set('');
+    this.inputError.set(null);
+    this.orderError.set(null);
+
+    this.itemAddedNotice.set('¡Prenda agregada a tu lista con éxito!');
+    setTimeout(() => {
+      this.itemAddedNotice.set(null);
+    }, 3000);
   }
 
   removeItem(id: string): void {
-    if (this.items().length <= 1) return;
     this.items.update((curr) => curr.filter((item) => item.id !== id));
+  }
+
+  clearAllItems(): void {
+    this.items.set([]);
+  }
+
+  getShortLink(link: string): string {
+    try {
+      const url = new URL(link);
+      const pathname = url.pathname.length > 25 ? url.pathname.slice(0, 22) + '...' : url.pathname;
+      return url.hostname.replace('www.', '') + pathname;
+    } catch {
+      return link.length > 32 ? link.slice(0, 29) + '...' : link;
+    }
   }
 
   onSubmitOrder(): void {
     this.submitted.set(true);
-    this.errorMessage.set(null);
+    this.orderError.set(null);
 
-    const validItems = this.items().filter((i) => i.link.trim().length > 0);
+    // Si el usuario escribió un link en el input pero no presionó "Agregar", lo agregamos automáticamente
+    const currentLinkValue = this.currentLink().trim();
+    if (currentLinkValue) {
+      this.addCurrentItem();
+    }
 
-    if (validItems.length === 0) {
-      this.errorMessage.set(
-        'Por favor, ingresa al menos un enlace o código de prenda de Shein.'
+    const currentItems = this.items();
+    if (currentItems.length === 0) {
+      this.orderError.set(
+        'Por favor agrega al menos una prenda a tu lista antes de enviar a WhatsApp.'
       );
       return;
     }
 
     const payload = {
       customerName: this.customerName().trim() || undefined,
-      items: validItems.map((i) => ({
+      items: currentItems.map((i) => ({
         link: i.link.trim(),
         size: i.size,
         notes: i.notes?.trim() || undefined,
@@ -88,7 +135,7 @@ export class SheinOrdersComponent implements OnInit {
 
     const res = this.whatsapp.openSheinOrder(payload);
     if (!res.ok && res.reason === 'MISSING_NUMBER') {
-      this.errorMessage.set(
+      this.orderError.set(
         'El número de WhatsApp de la tienda aún no está configurado.'
       );
     }
