@@ -1,0 +1,159 @@
+<div class="hs-admin-page">
+  <div class="hs-page-header">
+    <div>
+      <h1 class="hs-page-title">Preguntas Frecuentes (FAQ)</h1>
+      <p class="hs-page-subtitle">
+        Administra las respuestas a dudas comunes mostradas en el acordeón del inicio.
+      </p>
+    </div>
+    <button type="button" class="hs-btn-primary" (click)="openCreateModal()">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Nueva Pregunta</span>
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="hs-alert-success" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <div class="hs-faqs-list">
+    @if (loading()) {
+      <div class="hs-table-loading">
+        <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+        <span>Cargando preguntas frecuentes...</span>
+      </div>
+    } @else {
+      @for (faq of faqs(); track faq.id) {
+        <div class="hs-faq-card">
+          <div class="hs-faq-card__header">
+            <div class="hs-faq-title-wrap">
+              <span class="hs-order-badge">#{{ faq.sortOrder }}</span>
+              <h2 class="hs-faq-question">{{ faq.question }}</h2>
+            </div>
+            <div class="hs-faq-actions">
+              <span
+                class="hs-status-pill"
+                [class.hs-status-pill--active]="faq.isActive"
+              >
+                {{ faq.isActive ? 'Activa' : 'Oculta' }}
+              </span>
+              <button
+                type="button"
+                class="hs-btn-action hs-btn-action--edit"
+                (click)="openEditModal(faq)"
+                title="Editar pregunta"
+                aria-label="Editar pregunta"
+              >
+                <i class="pi pi-pencil" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                class="hs-btn-action hs-btn-action--delete"
+                (click)="confirmDelete(faq)"
+                title="Eliminar pregunta"
+                aria-label="Eliminar pregunta"
+              >
+                <i class="pi pi-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <p class="hs-faq-answer">{{ faq.answer }}</p>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Modal Crear / Editar FAQ -->
+  @if (isModalOpen()) {
+    <div class="hs-modal-backdrop" (click)="closeModal()">
+      <div class="hs-modal-card" (click)="$event.stopPropagation()">
+        <div class="hs-modal-header">
+          <h2 class="hs-modal-title">
+            {{ editingFaqId() ? 'Editar Pregunta Frecuente' : 'Nueva Pregunta Frecuente' }}
+          </h2>
+          <button type="button" class="hs-modal-close" (click)="closeModal()" aria-label="Cerrar modal">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="hs-modal-body">
+          <div class="hs-field">
+            <label class="hs-label" for="faqQ">Pregunta *</label>
+            <input
+              id="faqQ"
+              type="text"
+              class="hs-input"
+              placeholder="¿Cómo funciona el pedido de Shein?"
+              [(ngModel)]="formQuestion"
+            />
+          </div>
+
+          <div class="hs-field">
+            <label class="hs-label" for="faqA">Respuesta *</label>
+            <textarea
+              id="faqA"
+              class="hs-textarea"
+              rows="4"
+              placeholder="Explica la respuesta claramente indicando condiciones de Baní, 50% anticipo, etc."
+              [(ngModel)]="formAnswer"
+            ></textarea>
+          </div>
+
+          <div class="hs-field">
+            <label class="hs-label" for="faqSort">Orden de aparición</label>
+            <input
+              id="faqSort"
+              type="number"
+              class="hs-input"
+              [(ngModel)]="formSortOrder"
+            />
+          </div>
+
+          <div class="hs-form-checkboxes">
+            <label class="hs-checkbox-label">
+              <input type="checkbox" [(ngModel)]="formIsActive" />
+              <span>Visible en la sección de preguntas frecuentes del Inicio</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="hs-modal-footer">
+          <button type="button" class="hs-btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="button" class="hs-btn-primary" (click)="saveFaq()">
+            <i class="pi pi-save" aria-hidden="true"></i>
+            <span>{{ editingFaqId() ? 'Guardar Cambios' : 'Crear Pregunta' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Confirmar Eliminación -->
+  @if (isDeleteModalOpen()) {
+    <div class="hs-modal-backdrop" (click)="cancelDelete()">
+      <div class="hs-modal-card hs-modal-card--sm" (click)="$event.stopPropagation()">
+        <div class="hs-modal-header">
+          <h2 class="hs-modal-title">¿Eliminar pregunta?</h2>
+          <button type="button" class="hs-modal-close" (click)="cancelDelete()" aria-label="Cerrar">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="hs-modal-body">
+          <p>
+            ¿Estás seguro de que deseas eliminar esta pregunta frecuente?
+          </p>
+        </div>
+        <div class="hs-modal-footer">
+          <button type="button" class="hs-btn-secondary" (click)="cancelDelete()">Cancelar</button>
+          <button type="button" class="hs-btn-danger" (click)="deleteFaq()">
+            <i class="pi pi-trash" aria-hidden="true"></i>
+            <span>Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

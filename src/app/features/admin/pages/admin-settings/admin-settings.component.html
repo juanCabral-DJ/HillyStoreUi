@@ -1,0 +1,190 @@
+<div class="hs-admin-page">
+  <div class="hs-page-header">
+    <div>
+      <h1 class="hs-page-title">Ajustes de la Tienda</h1>
+      <p class="hs-page-subtitle">
+        Información de contacto, dirección en Baní y condiciones para encargos de Shein.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="hs-btn-primary"
+      (click)="onSave()"
+      [disabled]="isSaving()"
+    >
+      @if (isSaving()) {
+        <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+        <span>Guardando...</span>
+      } @else {
+        <i class="pi pi-save" aria-hidden="true"></i>
+        <span>Guardar Cambios</span>
+      }
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="hs-alert-success" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="hs-alert-error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <div class="hs-settings-grid">
+    <!-- Card 1: Contacto y Ubicación -->
+    <section class="hs-settings-card">
+      <h2 class="hs-card-title">
+        <i class="pi pi-map-marker" aria-hidden="true"></i>
+        <span>Contacto y Local Físico</span>
+      </h2>
+
+      <div class="hs-field">
+        <label class="hs-label" for="settingWhatsApp">Número de WhatsApp para pedidos *</label>
+        <div class="hs-input-icon-wrap">
+          <i class="pi pi-whatsapp" aria-hidden="true"></i>
+          <input
+            id="settingWhatsApp"
+            type="text"
+            class="hs-input hs-input--with-icon"
+            placeholder="8095551234"
+            [(ngModel)]="whatsAppNumber"
+          />
+        </div>
+        <span class="hs-field-hint">Número dominicano con código de área (ej. 809, 829 o 849) sin guiones.</span>
+      </div>
+
+      <div class="hs-field">
+        <label class="hs-label" for="settingAddress">Dirección de la tienda en Baní *</label>
+        <input
+          id="settingAddress"
+          type="text"
+          class="hs-input"
+          placeholder="Calle 0001, El Llano, Baní, República Dominicana"
+          [(ngModel)]="address"
+        />
+      </div>
+
+      <div class="hs-form-row">
+        <div class="hs-field">
+          <label class="hs-label" for="settingOpens">Hora de apertura</label>
+          <input
+            id="settingOpens"
+            type="time"
+            class="hs-input"
+            [(ngModel)]="opensAt"
+          />
+        </div>
+        <div class="hs-field">
+          <label class="hs-label" for="settingCloses">Hora de cierre</label>
+          <input
+            id="settingCloses"
+            type="time"
+            class="hs-input"
+            [(ngModel)]="closesAt"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 2: Condiciones de Encargos Shein -->
+    <section class="hs-settings-card">
+      <h2 class="hs-card-title">
+        <i class="pi pi-box" aria-hidden="true"></i>
+        <span>Pedidos por Encargo (Shein)</span>
+      </h2>
+
+      <div class="hs-field">
+        <label class="hs-label" for="settingDeposit">Porcentaje de Anticipo (%) *</label>
+        <input
+          id="settingDeposit"
+          type="number"
+          min="10"
+          max="100"
+          class="hs-input"
+          [(ngModel)]="depositPercentage"
+        />
+        <span class="hs-field-hint">Por política comercial de HillyStore, el anticipo estándar es 50%.</span>
+      </div>
+
+      <div class="hs-form-row">
+        <div class="hs-field">
+          <label class="hs-label" for="sheinMin">Días mínimos de entrega</label>
+          <input
+            id="sheinMin"
+            type="number"
+            min="1"
+            class="hs-input"
+            [(ngModel)]="sheinMinDays"
+          />
+        </div>
+        <div class="hs-field">
+          <label class="hs-label" for="sheinMax">Días máximos de entrega</label>
+          <input
+            id="sheinMax"
+            type="number"
+            min="1"
+            class="hs-input"
+            [(ngModel)]="sheinMaxDays"
+          />
+        </div>
+      </div>
+      <span class="hs-field-hint">Tiempo estimado de llegada del paquete al local de Baní (15 a 20 días).</span>
+    </section>
+
+    <!-- Card 3: Redes Sociales -->
+    <section class="hs-settings-card">
+      <h2 class="hs-card-title">
+        <i class="pi pi-share-alt" aria-hidden="true"></i>
+        <span>Redes Sociales</span>
+      </h2>
+
+      <div class="hs-field">
+        <label class="hs-label" for="settingInstagram">Instagram URL</label>
+        <div class="hs-input-icon-wrap">
+          <i class="pi pi-instagram" aria-hidden="true"></i>
+          <input
+            id="settingInstagram"
+            type="url"
+            class="hs-input hs-input--with-icon"
+            placeholder="https://instagram.com/hillystore"
+            [(ngModel)]="instagramUrl"
+          />
+        </div>
+      </div>
+
+      <div class="hs-field">
+        <label class="hs-label" for="settingFacebook">Facebook URL (opcional)</label>
+        <div class="hs-input-icon-wrap">
+          <i class="pi pi-facebook" aria-hidden="true"></i>
+          <input
+            id="settingFacebook"
+            type="url"
+            class="hs-input hs-input--with-icon"
+            placeholder="https://facebook.com/..."
+            [(ngModel)]="facebookUrl"
+          />
+        </div>
+      </div>
+
+      <div class="hs-field">
+        <label class="hs-label" for="settingTiktok">TikTok URL (opcional)</label>
+        <div class="hs-input-icon-wrap">
+          <i class="pi pi-video" aria-hidden="true"></i>
+          <input
+            id="settingTiktok"
+            type="url"
+            class="hs-input hs-input--with-icon"
+            placeholder="https://tiktok.com/@..."
+            [(ngModel)]="tiktokUrl"
+          />
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

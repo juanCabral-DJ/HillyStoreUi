@@ -1,0 +1,303 @@
+<div class="hs-admin-page">
+  <!-- Header de página -->
+  <div class="hs-page-header">
+    <div>
+      <h1 class="hs-page-title">Prendas y Stock</h1>
+      <p class="hs-page-subtitle">
+        Gestiona el catálogo de ropa física disponible en el local de Baní.
+      </p>
+    </div>
+    <button type="button" class="hs-btn-primary" (click)="openCreateModal()">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Nueva Prenda</span>
+    </button>
+  </div>
+
+  <!-- Mensaje de éxito -->
+  @if (successMessage()) {
+    <div class="hs-alert-success" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Barra de Filtros -->
+  <div class="hs-filter-bar">
+    <div class="hs-search-box">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input
+        type="text"
+        placeholder="Buscar prenda o código..."
+        [(ngModel)]="searchFilter"
+        class="hs-input"
+      />
+    </div>
+
+    <div class="hs-filter-selects">
+      <select class="hs-select" [(ngModel)]="audienceFilter">
+        <option value="Todas">Toda audiencia</option>
+        <option value="Mujeres">Mujeres</option>
+        <option value="Hombres">Hombres</option>
+      </select>
+
+      <select class="hs-select" [(ngModel)]="availabilityFilter">
+        <option value="Todas">Todo stock</option>
+        <option value="Disponibles">Solo disponibles</option>
+        <option value="Agotadas">Solo agotadas</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tabla de Productos -->
+  <div class="hs-table-container">
+    @if (loading()) {
+      <div class="hs-table-loading">
+        <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+        <span>Cargando inventario...</span>
+      </div>
+    } @else {
+      @if (filteredProducts().length === 0) {
+        <div class="hs-table-empty">
+          <i class="pi pi-inbox" aria-hidden="true"></i>
+          <p>No se encontraron prendas con los filtros seleccionados.</p>
+        </div>
+      } @else {
+        <table class="hs-table">
+          <thead>
+            <tr>
+              <th>Prenda</th>
+              <th>Audiencia</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Disponibilidad</th>
+              <th>Destacada</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of filteredProducts(); track p.id) {
+              <tr>
+                <td>
+                  <div class="hs-prod-cell">
+                    <img
+                      [src]="p.images[0]?.url || '/hero.png'"
+                      [alt]="p.name"
+                      class="hs-prod-thumb"
+                      onerror="this.src='/hero.png'"
+                    />
+                    <div>
+                      <strong class="hs-prod-name">{{ p.name }}</strong>
+                      <span class="hs-prod-sizes">Tallas: {{ getSizeLabels(p) }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span
+                    class="hs-badge"
+                    [class.hs-badge--women]="p.audience === 'Mujeres'"
+                    [class.hs-badge--men]="p.audience === 'Hombres'"
+                  >
+                    {{ p.audience }}
+                  </span>
+                </td>
+                <td>
+                  <span class="hs-cat-tag">{{ p.categoryName }}</span>
+                </td>
+                <td>
+                  <strong class="hs-prod-price">RD$ {{ p.price | number:'1.0-0' }}</strong>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="hs-stock-toggle-btn"
+                    [class.hs-stock-toggle-btn--available]="p.isAvailable"
+                    (click)="toggleAvailability(p)"
+                    [title]="p.isAvailable ? 'Click para marcar como Agotada' : 'Click para marcar como Disponible'"
+                  >
+                    <span class="hs-dot"></span>
+                    <span>{{ p.isAvailable ? 'En Stock' : 'Agotada' }}</span>
+                  </button>
+                </td>
+                <td>
+                  @if (p.isFeatured) {
+                    <span class="hs-star-tag" title="Aparece en carrusel de inicio">
+                      <i class="pi pi-star-fill" aria-hidden="true"></i> Destacada
+                    </span>
+                  } @else {
+                    <span class="hs-star-off">—</span>
+                  }
+                </td>
+                <td class="text-right">
+                  <div class="hs-action-btns">
+                    <button
+                      type="button"
+                      class="hs-btn-action hs-btn-action--edit"
+                      (click)="openEditModal(p)"
+                      title="Editar prenda"
+                      aria-label="Editar prenda"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="hs-btn-action hs-btn-action--delete"
+                      (click)="confirmDelete(p)"
+                      title="Eliminar prenda"
+                      aria-label="Eliminar prenda"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+  </div>
+
+  <!-- Modal Crear / Editar Prenda -->
+  @if (isModalOpen()) {
+    <div class="hs-modal-backdrop" (click)="closeModal()">
+      <div class="hs-modal-card" (click)="$event.stopPropagation()">
+        <div class="hs-modal-header">
+          <h2 class="hs-modal-title">
+            {{ editingProductId() ? 'Editar Prenda' : 'Nueva Prenda en Stock' }}
+          </h2>
+          <button type="button" class="hs-modal-close" (click)="closeModal()" aria-label="Cerrar modal">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="hs-modal-body">
+          <div class="hs-form-row">
+            <div class="hs-field hs-field--flex2">
+              <label class="hs-label" for="prodName">Nombre de la prenda *</label>
+              <input
+                id="prodName"
+                type="text"
+                class="hs-input"
+                placeholder="Ej. Vestido Midi Estampado"
+                [(ngModel)]="formName"
+              />
+            </div>
+            <div class="hs-field hs-field--flex1">
+              <label class="hs-label" for="prodPrice">Precio (RD$) *</label>
+              <input
+                id="prodPrice"
+                type="number"
+                class="hs-input"
+                placeholder="1500"
+                [(ngModel)]="formPrice"
+              />
+            </div>
+          </div>
+
+          <div class="hs-form-row">
+            <div class="hs-field">
+              <label class="hs-label" for="prodAudience">Audiencia *</label>
+              <select id="prodAudience" class="hs-select" [(ngModel)]="formAudience">
+                <option value="Mujeres">Mujeres</option>
+                <option value="Hombres">Hombres</option>
+              </select>
+            </div>
+            <div class="hs-field">
+              <label class="hs-label" for="prodCat">Categoría *</label>
+              <select id="prodCat" class="hs-select" [(ngModel)]="formCategoryId">
+                @for (c of categories(); track c.id) {
+                  <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="hs-field">
+            <label class="hs-label" for="prodImg">URL de la Foto</label>
+            <input
+              id="prodImg"
+              type="text"
+              class="hs-input"
+              placeholder="Ej. /hero.png o link https://..."
+              [(ngModel)]="formImageUrl"
+            />
+          </div>
+
+          <div class="hs-field">
+            <label class="hs-label">Tallas disponibles</label>
+            <div class="hs-sizes-selector">
+              @for (s of standardSizes; track s) {
+                <button
+                  type="button"
+                  class="hs-size-btn"
+                  [class.hs-size-btn--selected]="isSizeSelected(s)"
+                  (click)="toggleSize(s)"
+                >
+                  {{ s }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="hs-field">
+            <label class="hs-label" for="prodDesc">Descripción (opcional)</label>
+            <textarea
+              id="prodDesc"
+              class="hs-textarea"
+              rows="3"
+              placeholder="Detalles de tela, ajuste, ocasiones recomendadas..."
+              [(ngModel)]="formDescription"
+            ></textarea>
+          </div>
+
+          <div class="hs-form-checkboxes">
+            <label class="hs-checkbox-label">
+              <input type="checkbox" [(ngModel)]="formIsAvailable" />
+              <span>Disponible en tienda física (Baní)</span>
+            </label>
+
+            <label class="hs-checkbox-label">
+              <input type="checkbox" [(ngModel)]="formIsFeatured" />
+              <span>Mostrar en carrusel de destacadas del Inicio</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="hs-modal-footer">
+          <button type="button" class="hs-btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="button" class="hs-btn-primary" (click)="saveProduct()">
+            <i class="pi pi-save" aria-hidden="true"></i>
+            <span>{{ editingProductId() ? 'Guardar Cambios' : 'Crear Prenda' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Confirmar Eliminación -->
+  @if (isDeleteConfirmOpen()) {
+    <div class="hs-modal-backdrop" (click)="cancelDelete()">
+      <div class="hs-modal-card hs-modal-card--sm" (click)="$event.stopPropagation()">
+        <div class="hs-modal-header">
+          <h2 class="hs-modal-title">¿Eliminar prenda?</h2>
+          <button type="button" class="hs-modal-close" (click)="cancelDelete()" aria-label="Cerrar">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="hs-modal-body">
+          <p>
+            ¿Estás seguro de que deseas eliminar
+            <strong>"{{ productToDelete()?.name }}"</strong>? Esta acción no se puede deshacer.
+          </p>
+        </div>
+        <div class="hs-modal-footer">
+          <button type="button" class="hs-btn-secondary" (click)="cancelDelete()">Cancelar</button>
+          <button type="button" class="hs-btn-danger" (click)="deleteProduct()">
+            <i class="pi pi-trash" aria-hidden="true"></i>
+            <span>Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,107 @@
+<div class="hs-admin-layout" [class.hs-admin-layout--sidebar-open]="sidebarOpen()">
+  <!-- Backdrop móvil para cerrar sidebar -->
+  @if (sidebarOpen()) {
+    <div
+      class="hs-admin-backdrop"
+      (click)="closeSidebar()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <!-- Barra Lateral (Sidebar) -->
+  <aside class="hs-admin-sidebar" aria-label="Navegación de Administración">
+    <div class="hs-admin-sidebar__brand">
+      <a routerLink="/admin/productos" class="hs-brand-link">
+        <span class="hs-brand-title">Hilly<span>Store</span></span>
+        <span class="hs-admin-tag">Admin</span>
+      </a>
+      <button
+        type="button"
+        class="hs-sidebar-close-btn"
+        (click)="closeSidebar()"
+        aria-label="Cerrar barra lateral"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <!-- Enlaces de navegación -->
+    <nav class="hs-admin-nav">
+      @for (item of navItems; track item.routerLink) {
+        <a
+          [routerLink]="item.routerLink"
+          routerLinkActive="hs-admin-nav__link--active"
+          class="hs-admin-nav__link"
+          (click)="closeSidebar()"
+        >
+          <i [class]="item.icon" aria-hidden="true"></i>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <!-- Pie del sidebar -->
+    <div class="hs-admin-sidebar__footer">
+      <a routerLink="/" class="hs-sidebar-public-btn" target="_blank" rel="noopener">
+        <i class="pi pi-external-link" aria-hidden="true"></i>
+        <span>Ver tienda pública</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <div class="hs-admin-body">
+    <!-- Barra Superior (Header) -->
+    <header class="hs-admin-header">
+      <div class="hs-admin-header__left">
+        <button
+          type="button"
+          class="hs-admin-menu-toggle"
+          (click)="toggleSidebar()"
+          aria-label="Abrir menú"
+        >
+          <i class="pi pi-bars" aria-hidden="true"></i>
+        </button>
+        <span class="hs-admin-header__title">Panel de Administración</span>
+      </div>
+
+      <div class="hs-admin-header__right">
+        <!-- Switch de Tema -->
+        <button
+          type="button"
+          class="hs-theme-btn"
+          (click)="theme.toggle()"
+          [title]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+          [attr.aria-label]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+        >
+          <i [class]="theme.isDark() ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
+        </button>
+
+        <!-- Información de Usuario -->
+        @if (auth.user(); as user) {
+          <div class="hs-user-chip">
+            <i class="pi pi-user" aria-hidden="true"></i>
+            <span class="hs-user-name">{{ user.displayName || user.email }}</span>
+          </div>
+        }
+
+        <!-- Botón Salir -->
+        <button
+          type="button"
+          class="hs-logout-btn"
+          (click)="logout()"
+          title="Cerrar sesión"
+          aria-label="Cerrar sesión"
+        >
+          <i class="pi pi-sign-out" aria-hidden="true"></i>
+          <span class="hs-logout-text">Salir</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Área de Vistas Hijas -->
+    <main class="hs-admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

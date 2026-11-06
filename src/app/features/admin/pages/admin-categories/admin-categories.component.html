@@ -1,0 +1,176 @@
+<div class="hs-admin-page">
+  <div class="hs-page-header">
+    <div>
+      <h1 class="hs-page-title">Categorías</h1>
+      <p class="hs-page-subtitle">
+        Organiza las categorías de prendas para el catálogo público y los filtros.
+      </p>
+    </div>
+    <button type="button" class="hs-btn-primary" (click)="openCreateModal()">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Nueva Categoría</span>
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="hs-alert-success" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <div class="hs-table-container">
+    @if (loading()) {
+      <div class="hs-table-loading">
+        <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+        <span>Cargando categorías...</span>
+      </div>
+    } @else {
+      <table class="hs-table">
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Nombre</th>
+            <th>Tallas</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of categories(); track c.id) {
+            <tr>
+              <td>
+                <span class="hs-order-badge">#{{ c.sortOrder }}</span>
+              </td>
+              <td>
+                <strong class="hs-cat-name">{{ c.name }}</strong>
+                <span class="hs-cat-slug">/catalogo?categoria={{ c.slug }}</span>
+              </td>
+              <td>
+                <span class="hs-uses-sizes-tag">
+                  {{ c.usesSizes ? 'Maneja tallas (S, M, L...)' : 'Talla única / Accesorios' }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="hs-status-pill"
+                  [class.hs-status-pill--active]="c.isActive"
+                >
+                  {{ c.isActive ? 'Activa' : 'Oculta' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <div class="hs-action-btns">
+                  <button
+                    type="button"
+                    class="hs-btn-action hs-btn-action--edit"
+                    (click)="openEditModal(c)"
+                    title="Editar categoría"
+                    aria-label="Editar categoría"
+                  >
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="hs-btn-action hs-btn-action--delete"
+                    (click)="confirmDelete(c)"
+                    title="Eliminar categoría"
+                    aria-label="Eliminar categoría"
+                  >
+                    <i class="pi pi-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Modal Crear / Editar Categoría -->
+  @if (isModalOpen()) {
+    <div class="hs-modal-backdrop" (click)="closeModal()">
+      <div class="hs-modal-card hs-modal-card--sm" (click)="$event.stopPropagation()">
+        <div class="hs-modal-header">
+          <h2 class="hs-modal-title">
+            {{ editingCategoryId() ? 'Editar Categoría' : 'Nueva Categoría' }}
+          </h2>
+          <button type="button" class="hs-modal-close" (click)="closeModal()" aria-label="Cerrar modal">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="hs-modal-body">
+          <div class="hs-field">
+            <label class="hs-label" for="catName">Nombre *</label>
+            <input
+              id="catName"
+              type="text"
+              class="hs-input"
+              placeholder="Ej. Vestidos, Pantalones..."
+              [(ngModel)]="formName"
+            />
+          </div>
+
+          <div class="hs-field">
+            <label class="hs-label" for="catOrder">Orden de visualización</label>
+            <input
+              id="catOrder"
+              type="number"
+              class="hs-input"
+              [(ngModel)]="formSortOrder"
+            />
+          </div>
+
+          <div class="hs-form-checkboxes">
+            <label class="hs-checkbox-label">
+              <input type="checkbox" [(ngModel)]="formUsesSizes" />
+              <span>Esta categoría maneja tallas (ropa, calzado, etc.)</span>
+            </label>
+
+            <label class="hs-checkbox-label">
+              <input type="checkbox" [(ngModel)]="formIsActive" />
+              <span>Visible en la tienda pública</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="hs-modal-footer">
+          <button type="button" class="hs-btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="button" class="hs-btn-primary" (click)="saveCategory()">
+            <i class="pi pi-save" aria-hidden="true"></i>
+            <span>{{ editingCategoryId() ? 'Guardar' : 'Crear' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Confirmar Eliminación -->
+  @if (isDeleteModalOpen()) {
+    <div class="hs-modal-backdrop" (click)="cancelDelete()">
+      <div class="hs-modal-card hs-modal-card--sm" (click)="$event.stopPropagation()">
+        <div class="hs-modal-header">
+          <h2 class="hs-modal-title">¿Eliminar categoría?</h2>
+          <button type="button" class="hs-modal-close" (click)="cancelDelete()" aria-label="Cerrar">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="hs-modal-body">
+          <p>
+            ¿Estás seguro de que deseas eliminar la categoría
+            <strong>"{{ categoryToDelete()?.name }}"</strong>?
+          </p>
+        </div>
+        <div class="hs-modal-footer">
+          <button type="button" class="hs-btn-secondary" (click)="cancelDelete()">Cancelar</button>
+          <button type="button" class="hs-btn-danger" (click)="deleteCategory()">
+            <i class="pi pi-trash" aria-hidden="true"></i>
+            <span>Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
