@@ -1,0 +1,62 @@
+<section class="hs-faq-section" id="preguntas-frecuentes">
+  <div class="hs-container">
+    <!-- Encabezado de la sección -->
+    <div
+      class="hs-faq-header"
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+    >
+      <span class="hs-faq-header__badge">RESPUESTAS CLARAS</span>
+      <h2 class="hs-faq-header__title">Preguntas Frecuentes</h2>
+      <p class="hs-faq-header__subtitle">
+        Resolvemos tus principales dudas sobre cómo comprar de Shein, los métodos de pago,
+        tiempos de entrega y prendas en stock en Baní.
+      </p>
+    </div>
+
+    <!-- Acordeón de FAQs -->
+    <div
+      class="hs-faq-wrapper"
+      pAnimateOnScroll
+      enterClass="hs-enter-fade-up"
+      [once]="true"
+    >
+      <p-accordion [value]="activeValue()">
+        @for (faq of faqs(); track faq.id; let i = $index) {
+          <p-accordion-panel [value]="i.toString()">
+            <p-accordion-header>
+              <span class="hs-faq-q-text">{{ faq.question }}</span>
+            </p-accordion-header>
+            <p-accordion-content>
+              <p class="hs-faq-a-text">{{ faq.answer }}</p>
+            </p-accordion-content>
+          </p-accordion-panel>
+        }
+      </p-accordion>
+    </div>
+
+    <!-- Caja de ayuda adicional -->
+    <div
+      class="hs-faq-support"
+      pAnimateOnScroll
+      enterClass="hs-enter-scale"
+      [once]="true"
+    >
+      <div class="hs-faq-support__text">
+        <strong>¿Tienes alguna otra duda o consulta especial?</strong>
+        <span>Escríbenos directamente y la dueña te responderá con gusto en minutos.</span>
+      </div>
+
+      <button
+        type="button"
+        class="hs-faq-support__btn"
+        (click)="onAskCustomQuestion()"
+        aria-label="Hacer pregunta por WhatsApp"
+      >
+        <i class="pi pi-whatsapp" aria-hidden="true"></i>
+        <span>Escribir por WhatsApp</span>
+      </button>
+    </div>
+  </div>
+</section>

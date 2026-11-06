@@ -5,6 +5,7 @@ import { SheinStepsComponent } from './section/shein-steps/shein-steps.component
 import { StockCarouselComponent } from './section/stock-carousel/stock-carousel.component';
 import { CategoriesComponent } from './section/categories/categories.component';
 import { DeliveryInfoComponent } from './section/delivery-info/delivery-info.component';
+import { FaqAccordionComponent } from './section/faq-accordion/faq-accordion.component';
 
 @Component({
   selector: 'app-home',
@@ -15,6 +16,7 @@ import { DeliveryInfoComponent } from './section/delivery-info/delivery-info.com
     StockCarouselComponent,
     CategoriesComponent,
     DeliveryInfoComponent,
+    FaqAccordionComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
