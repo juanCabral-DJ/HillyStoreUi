@@ -238,10 +238,38 @@ export class AdminProductsComponent implements OnInit {
     this.formIsAvailable.set(p.isAvailable);
     this.formIsFeatured.set(p.isFeatured);
     this.formImageUrl.set(p.images && p.images[0]?.url ? p.images[0].url : '');
-    this.formSizes.set(
-      p.sizes.map((s) => ({ label: s.label, inStock: s.inStock }))
-    );
+
+    const sizes = (p.sizes || []).map((s) => ({ label: s.label, inStock: s.inStock }));
+    if (sizes.length === 0 && (p as any).availableSizes) {
+      const avail = ((p as any).availableSizes as string[]) || [];
+      avail.forEach((lbl) => sizes.push({ label: lbl, inStock: true }));
+    }
+    this.formSizes.set(sizes);
     this.isModalOpen.set(true);
+
+    // Obtener detalles completos de la prenda desde el backend (por si la lista resumida no trajo todas las tallas o fotos)
+    this.api.getAdminProductById(p.id).subscribe({
+      next: (full) => {
+        if (full && this.editingProductId() === p.id) {
+          this.formName.set(full.name);
+          this.formDescription.set(full.description || '');
+          this.formPrice.set(full.price);
+          this.formAudience.set(full.audience);
+          this.formCategoryId.set(full.categoryId);
+          this.formIsAvailable.set(full.isAvailable);
+          this.formIsFeatured.set(full.isFeatured);
+          if (full.images && full.images.length > 0) {
+            this.formImageUrl.set(full.images[0].url);
+          }
+          if (full.sizes && full.sizes.length > 0) {
+            this.formSizes.set(full.sizes.map((s) => ({ label: s.label, inStock: s.inStock })));
+          }
+        }
+      },
+      error: () => {
+        // En caso de fallo de red, se mantienen los valores ya cargados desde la fila
+      },
+    });
   }
 
   closeModal(): void {
