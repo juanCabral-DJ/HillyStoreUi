@@ -212,19 +212,61 @@
             </div>
           </div>
 
+          <!-- Subida de Foto de la Prenda -->
           <div class="hs-field">
-            <label class="hs-label" for="prodImg">URL de la Foto</label>
-            <input
-              id="prodImg"
-              type="text"
-              class="hs-input"
-              placeholder="Ej. /hero.png o link https://..."
-              [(ngModel)]="formImageUrl"
-            />
+            <label class="hs-label">Foto de la prenda</label>
+            <div class="hs-file-upload-card">
+              @if (previewImageUrl()) {
+                <div class="hs-preview-row">
+                  <div class="hs-preview-thumb-wrap">
+                    <img [src]="previewImageUrl()" alt="Vista previa" class="hs-preview-thumb" />
+                    <button
+                      type="button"
+                      class="hs-btn-remove-thumb"
+                      (click)="clearSelectedFile()"
+                      title="Quitar foto"
+                      aria-label="Quitar foto"
+                    >
+                      <i class="pi pi-times"></i>
+                    </button>
+                  </div>
+                  <div class="hs-preview-info">
+                    <strong class="hs-preview-name">
+                      {{ selectedFile() ? selectedFile()!.name : 'Foto actual' }}
+                    </strong>
+                    <span class="hs-preview-sub">
+                      {{ selectedFile() ? (selectedFile()!.size / 1024 | number:'1.0-0') + ' KB · Nueva foto lista para guardar' : 'Foto almacenada en el catálogo' }}
+                    </span>
+                    <label class="hs-btn-file-change">
+                      <i class="pi pi-sync"></i>
+                      <span>Cambiar archivo</span>
+                      <input type="file" accept="image/png, image/jpeg, image/webp" (change)="onFileSelected($event)" hidden />
+                    </label>
+                  </div>
+                </div>
+              } @else {
+                <div class="hs-upload-dropzone">
+                  <i class="pi pi-camera hs-upload-icon"></i>
+                  <div class="hs-upload-text">
+                    <strong>Seleccionar imagen desde tu dispositivo</strong>
+                    <span>Soporta JPG, PNG o WebP (máx. 5 MB)</span>
+                  </div>
+                  <label class="hs-btn-browse">
+                    <i class="pi pi-upload"></i>
+                    <span>Buscar foto</span>
+                    <input type="file" accept="image/png, image/jpeg, image/webp" (change)="onFileSelected($event)" hidden />
+                  </label>
+                </div>
+              }
+            </div>
           </div>
 
+          <!-- Tallas y su disponibilidad individual -->
           <div class="hs-field">
-            <label class="hs-label">Tallas disponibles</label>
+            <div class="hs-sizes-header-wrap">
+              <label class="hs-label">Tallas de la prenda</label>
+              <span class="hs-hint">Elige las tallas que aplican:</span>
+            </div>
             <div class="hs-sizes-selector">
               @for (s of standardSizes; track s) {
                 <button
@@ -237,6 +279,26 @@
                 </button>
               }
             </div>
+
+            @if (formSizes().length > 0) {
+              <div class="hs-sizes-stock-manager">
+                <span class="hs-stock-manager-title">Disponibilidad por talla:</span>
+                <div class="hs-sizes-chips">
+                  @for (s of formSizes(); track s.label) {
+                    <button
+                      type="button"
+                      class="hs-size-stock-chip"
+                      [class.hs-size-stock-chip--instock]="s.inStock"
+                      (click)="toggleSizeStock(s.label)"
+                      [title]="s.inStock ? 'Clic para marcar talla ' + s.label + ' como agotada' : 'Clic para marcar talla ' + s.label + ' como en stock'"
+                    >
+                      <span class="hs-chip-label">{{ s.label }}</span>
+                      <span class="hs-chip-status">{{ s.inStock ? '✓ En Stock' : '✗ Agotada' }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
           <div class="hs-field">
@@ -250,12 +312,25 @@
             ></textarea>
           </div>
 
-          <div class="hs-form-checkboxes">
-            <label class="hs-checkbox-label">
-              <input type="checkbox" [(ngModel)]="formIsAvailable" />
-              <span>Disponible en tienda física (Baní)</span>
-            </label>
+          <!-- Gestión de Disponibilidad Global de la Prenda -->
+          <div class="hs-availability-card" [class.hs-availability-card--available]="formIsAvailable()" (click)="toggleModalAvailability()">
+            <div class="hs-availability-card__content">
+              <div class="hs-availability-card__header">
+                <span class="hs-status-indicator" [class.hs-status-indicator--active]="formIsAvailable()"></span>
+                <span class="hs-availability-card__title">
+                  {{ formIsAvailable() ? 'Prenda DISPONIBLE en tienda' : 'Prenda AGOTADA / FUERA DE STOCK' }}
+                </span>
+              </div>
+              <p class="hs-availability-card__desc">
+                {{ formIsAvailable() ? 'Activa y visible en el catálogo público para que los clientes puedan pedirla por WhatsApp.' : 'Oculta en el catálogo público. Los clientes no podrán seleccionarla ni ordenarla.' }}
+              </p>
+            </div>
+            <div class="hs-toggle-switch-ui" [class.hs-toggle-switch-ui--on]="formIsAvailable()">
+              <span class="hs-toggle-knob"></span>
+            </div>
+          </div>
 
+          <div class="hs-form-checkboxes">
             <label class="hs-checkbox-label">
               <input type="checkbox" [(ngModel)]="formIsFeatured" />
               <span>Mostrar en carrusel de destacadas del Inicio</span>

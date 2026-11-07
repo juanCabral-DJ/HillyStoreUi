@@ -135,6 +135,9 @@ export class AdminProductsComponent implements OnInit {
   readonly formIsFeatured = signal<boolean>(false);
   readonly formImageUrl = signal<string>('');
   readonly formSizes = signal<UpsertProductSizeInput[]>([]);
+  readonly selectedFile = signal<File | null>(null);
+  readonly previewImageUrl = signal<string>('');
+  readonly isUploading = signal<boolean>(false);
 
   // Tallas disponibles para selección
   readonly standardSizes = DEFAULT_SIZES;
@@ -220,6 +223,8 @@ export class AdminProductsComponent implements OnInit {
     this.formIsAvailable.set(true);
     this.formIsFeatured.set(false);
     this.formImageUrl.set('');
+    this.selectedFile.set(null);
+    this.previewImageUrl.set('');
     this.formSizes.set([
       { label: 'S', inStock: true },
       { label: 'M', inStock: true },
@@ -237,7 +242,11 @@ export class AdminProductsComponent implements OnInit {
     this.formCategoryId.set(p.categoryId);
     this.formIsAvailable.set(p.isAvailable);
     this.formIsFeatured.set(p.isFeatured);
-    this.formImageUrl.set(p.images && p.images[0]?.url ? p.images[0].url : '');
+
+    const initialImg = p.images && p.images[0]?.url ? p.images[0].url : ((p as any).primaryImageUrl || '');
+    this.formImageUrl.set(initialImg);
+    this.previewImageUrl.set(initialImg);
+    this.selectedFile.set(null);
 
     const sizes = (p.sizes || []).map((s) => ({ label: s.label, inStock: s.inStock }));
     if (sizes.length === 0 && (p as any).availableSizes) {
@@ -258,8 +267,9 @@ export class AdminProductsComponent implements OnInit {
           this.formCategoryId.set(full.categoryId);
           this.formIsAvailable.set(full.isAvailable);
           this.formIsFeatured.set(full.isFeatured);
-          if (full.images && full.images.length > 0) {
+          if (full.images && full.images.length > 0 && !this.selectedFile()) {
             this.formImageUrl.set(full.images[0].url);
+            this.previewImageUrl.set(full.images[0].url);
           }
           if (full.sizes && full.sizes.length > 0) {
             this.formSizes.set(full.sizes.map((s) => ({ label: s.label, inStock: s.inStock })));
@@ -270,6 +280,33 @@ export class AdminProductsComponent implements OnInit {
         // En caso de fallo de red, se mantienen los valores ya cargados desde la fila
       },
     });
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        this.notify('La foto no debe superar los 5 MB.');
+        return;
+      }
+      this.selectedFile.set(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewImageUrl.set(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  clearSelectedFile(): void {
+    this.selectedFile.set(null);
+    this.previewImageUrl.set('');
+    this.formImageUrl.set('');
+  }
+
+  toggleModalAvailability(): void {
+    this.formIsAvailable.update((v) => !v);
   }
 
   closeModal(): void {
@@ -312,6 +349,7 @@ export class AdminProductsComponent implements OnInit {
     };
 
     const editId = this.editingProductId();
+    const fileToUpload = this.selectedFile();
     const cat = this.categories().find((c) => c.id === payload.categoryId);
     const catName = cat?.name ?? 'General';
     const catSlug = cat?.slug ?? 'general';
@@ -320,6 +358,9 @@ export class AdminProductsComponent implements OnInit {
       // Update
       this.api.updateProduct(editId, payload).subscribe({
         next: (updated) => {
+          if (fileToUpload) {
+            this.uploadAndAttachImage(editId, fileToUpload);
+          }
           this.products.update((list) =>
             list.map((item) => (item.id === editId ? updated : item))
           );
@@ -342,8 +383,8 @@ export class AdminProductsComponent implements OnInit {
                     isAvailable: payload.isAvailable,
                     isFeatured: payload.isFeatured,
                     sizes: payload.sizes.map((s, idx) => ({ id: idx + 1, label: s.label, inStock: s.inStock })),
-                    images: this.formImageUrl()
-                      ? [{ id: 1, url: this.formImageUrl(), sortOrder: 1, isPrimary: true }]
+                    images: this.previewImageUrl()
+                      ? [{ id: 1, url: this.previewImageUrl(), sortOrder: 1, isPrimary: true }]
                       : item.images,
                   }
                 : item
@@ -356,6 +397,9 @@ export class AdminProductsComponent implements OnInit {
       // Create
       this.api.createProduct(payload).subscribe({
         next: (created) => {
+          if (fileToUpload) {
+            this.uploadAndAttachImage(created.id, fileToUpload);
+          }
           this.products.update((list) => [created, ...list]);
           this.notify('Prenda creada con éxito.');
         },
@@ -378,7 +422,7 @@ export class AdminProductsComponent implements OnInit {
             images: [
               {
                 id: 1,
-                url: this.formImageUrl() || '/hero.png',
+                url: this.previewImageUrl() || '/hero.png',
                 sortOrder: 1,
                 isPrimary: true,
               },
@@ -393,6 +437,33 @@ export class AdminProductsComponent implements OnInit {
     }
 
     this.closeModal();
+  }
+
+  private uploadAndAttachImage(productId: number, file: File): void {
+    this.isUploading.set(true);
+    this.api.uploadProductImage(productId, file, { isPrimary: true }).subscribe({
+      next: (imgDto) => {
+        this.products.update((list) =>
+          list.map((p) => {
+            if (p.id === productId) {
+              const otherImages = (p.images || []).map((img) => ({ ...img, isPrimary: false }));
+              return {
+                ...p,
+                images: [imgDto, ...otherImages],
+                primaryImageUrl: imgDto.url,
+              };
+            }
+            return p;
+          })
+        );
+        this.isUploading.set(false);
+        this.notify('Foto subida y optimizada exitosamente en el servidor.');
+      },
+      error: () => {
+        this.isUploading.set(false);
+        this.notify('Aviso: La prenda se guardó pero ocurrió un problema al subir la foto.');
+      },
+    });
   }
 
   toggleAvailability(p: AdminProductDto): void {
