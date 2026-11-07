@@ -132,6 +132,17 @@ img {
   animation: hsFadeOut 0.3s ease-in forwards;
 }
 
+/* En dispositivos móviles (pantallas pequeñas), asegurar visibilidad inmediata de headers y componentes sin depender de scroll o animaciones */
+@media (max-width: 768px) {
+  .hs-enter-fade-up,
+  .hs-enter-fade-in,
+  .hs-enter-scale {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* Accesibilidad: respeta prefers-reduced-motion (Fase 4 del plan) */
 @media (prefers-reduced-motion: reduce) {
   html {

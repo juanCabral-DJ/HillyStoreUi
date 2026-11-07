@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AnimateOnScroll } from 'primeng/animateonscroll';
 import { Skeleton } from 'primeng/skeleton';
 import { ApiClient } from '../../../../core/api';
 import { SeoService } from '../../../../core/seo';
@@ -17,7 +16,7 @@ import {
 @Component({
   selector: 'app-catalog-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Skeleton, AnimateOnScroll],
+  imports: [CommonModule, FormsModule, RouterLink, Skeleton],
   templateUrl: './catalog-list.component.html',
   styleUrl: './catalog-list.component.scss',
 })
@@ -81,15 +80,18 @@ export class CatalogListComponent implements OnInit {
         } else {
           this.categories.set(this.getFallbackCategories());
         }
+        this.updateCatalogSeo();
       },
       error: () => {
         this.categories.set(this.getFallbackCategories());
+        this.updateCatalogSeo();
       },
     });
   }
 
   fetchProducts(): void {
     this.loading.set(true);
+    this.updateCatalogSeo();
 
     const filter: ProductFilterParams = {
       page: this.currentPage(),
@@ -442,5 +444,32 @@ export class CatalogListComponent implements OnInit {
         availableSizes: ['S', 'M', 'L'],
       },
     ];
+  }
+
+  private updateCatalogSeo(): void {
+    const catSlug = this.selectedCategory();
+    const aud = this.selectedAudience();
+    const cat = this.categories().find((c) => c.slug === catSlug);
+
+    let title = 'Catálogo de Ropa en Stock en Baní';
+    if (cat && aud !== 'Todos') {
+      title = `${cat.name} para ${aud} en Stock en Baní | HillyStore`;
+    } else if (cat) {
+      title = `${cat.name} en Stock en Baní | HillyStore`;
+    } else if (aud !== 'Todos') {
+      title = `Ropa para ${aud} en Stock en Baní | HillyStore`;
+    } else {
+      title = 'Catálogo de Ropa en Stock en Baní · Mujeres y Hombres | HillyStore';
+    }
+
+    const desc = cat
+      ? `Explora ${cat.name.toLowerCase()} en stock disponibles hoy mismo en Baní, Peravia. Entrega inmediata y pedidos fáciles por WhatsApp con HillyStore.`
+      : 'Explora las prendas en stock disponibles hoy en Baní: vestidos, camisas de lino, polos, jeans, accesorios y colonias. Pide fácil por WhatsApp.';
+
+    this.seo.setPageSeo({
+      title,
+      description: desc,
+      canonicalPath: '/catalogo',
+    });
   }
 }

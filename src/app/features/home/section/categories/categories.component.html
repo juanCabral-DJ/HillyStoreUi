@@ -1,12 +1,7 @@
 <section class="hs-categories-section" id="categorias">
   <div class="hs-container">
     <!-- Encabezado de la sección -->
-    <div
-      class="hs-categories-header"
-      pAnimateOnScroll
-      enterClass="hs-enter-fade-up"
-      [once]="true"
-    >
+    <div class="hs-categories-header">
       <div class="hs-categories-header__lead">
         <span class="hs-categories-header__badge">COLECCIONES DESTACADAS</span>
         <h2 class="hs-categories-header__title">Explora por Categoría</h2>
@@ -25,12 +20,7 @@
     </div>
 
     <!-- Grilla de categorías -->
-    <div
-      class="hs-categories-grid"
-      pAnimateOnScroll
-      enterClass="hs-enter-fade-up"
-      [once]="true"
-    >
+    <div class="hs-categories-grid">
       @for (cat of categories(); track cat.id) {
         <a
           [routerLink]="['/catalogo']"

@@ -1,13 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AnimateOnScroll } from 'primeng/animateonscroll';
 import { HomeCategoryCard } from '../../../../shared/contracts';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, RouterLink, AnimateOnScroll],
+  imports: [CommonModule, RouterLink],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss',
 })

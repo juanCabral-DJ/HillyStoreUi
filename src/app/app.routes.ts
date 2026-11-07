@@ -11,20 +11,24 @@ export const routes: Routes = [
     children: [
       {
         path: '',
+        title: 'HillyStore · Tienda de ropa en Baní y Pedidos Shein',
         component: HomeComponent,
       },
       {
         path: 'catalogo',
+        title: 'Catálogo de Ropa en Stock en Baní · Mujeres y Hombres | HillyStore',
         loadComponent: () =>
           import('./features/catalog').then((m) => m.CatalogListComponent),
       },
       {
         path: 'catalogo/:slug',
+        title: 'Prenda en Stock | HillyStore',
         loadComponent: () =>
           import('./features/catalog').then((m) => m.ProductDetailComponent),
       },
       {
         path: 'pedidos-shein',
+        title: 'Pedidos de Shein a Baní (50% anticipo) | HillyStore',
         loadComponent: () =>
           import('./features/shein-orders').then((m) => m.SheinOrdersComponent),
       },
@@ -34,6 +38,7 @@ export const routes: Routes = [
   // Login de administración (sin layout)
   {
     path: 'admin/login',
+    title: 'Iniciar Sesión · Panel Administrativo | HillyStore',
     loadComponent: () =>
       import('./features/admin').then((m) => m.AdminLoginComponent),
   },
@@ -41,6 +46,7 @@ export const routes: Routes = [
   // Panel de administración protegido (lazy-loaded shell)
   {
     path: 'admin',
+    title: 'Panel Administrativo | HillyStore',
     loadComponent: () =>
       import('./layout').then((m) => m.AdminShellComponent),
     canActivate: [adminAuthGuard],
@@ -52,21 +58,25 @@ export const routes: Routes = [
       },
       {
         path: 'productos',
+        title: 'Prendas y Stock · Admin | HillyStore',
         loadComponent: () =>
           import('./features/admin').then((m) => m.AdminProductsComponent),
       },
       {
         path: 'categorias',
+        title: 'Categorías de Ropa · Admin | HillyStore',
         loadComponent: () =>
           import('./features/admin').then((m) => m.AdminCategoriesComponent),
       },
       {
         path: 'ajustes',
+        title: 'Ajustes de la Tienda · Admin | HillyStore',
         loadComponent: () =>
           import('./features/admin').then((m) => m.AdminSettingsComponent),
       },
       {
         path: 'faqs',
+        title: 'Preguntas Frecuentes · Admin | HillyStore',
         loadComponent: () =>
           import('./features/admin').then((m) => m.AdminFaqsComponent),
       },

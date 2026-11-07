@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AnimateOnScroll } from 'primeng/animateonscroll';
 import { Carousel, CarouselResponsiveOptions } from 'primeng/carousel';
 import { Skeleton } from 'primeng/skeleton';
 import { ApiClient } from '../../../../core/api';
@@ -11,7 +10,7 @@ import { ProductListItemDto } from '../../../../shared/contracts';
 @Component({
   selector: 'app-stock-carousel',
   standalone: true,
-  imports: [CommonModule, RouterLink, Carousel, Skeleton, AnimateOnScroll],
+  imports: [CommonModule, RouterLink, Carousel, Skeleton],
   templateUrl: './stock-carousel.component.html',
   styleUrl: './stock-carousel.component.scss',
 })
