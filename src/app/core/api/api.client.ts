@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, map, of } from 'rxjs';
 import {
   AdminProductDto,
   AuthLoginRequest,
@@ -30,7 +30,7 @@ import {
   filterFallbackProducts,
   getFallbackProductDetail,
 } from './api.fallback';
-import { API_BASE_URL } from './api.tokens';
+import { API_BASE_URL, MEDIA_BASE_URL } from './api.tokens';
 
 /**
  * Cliente HTTP centralizado de HillyStore.
@@ -43,6 +43,7 @@ export class ApiClient {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly baseUrl = inject(API_BASE_URL).replace(/\/+$/, '');
+  private readonly mediaBaseUrl = inject(MEDIA_BASE_URL, { optional: true }) ?? '';
   private readonly isAbsoluteApiUrl =
     this.baseUrl.startsWith('http://') || this.baseUrl.startsWith('https://');
 
@@ -59,9 +60,16 @@ export class ApiClient {
     if (this.shouldUseFallbackOnSsr) {
       return of(filterFallbackProducts(filters));
     }
-    return this.http.get<PaginatedResponse<ProductListItemDto>>(`${this.baseUrl}/products`, {
-      params: this.toHttpParams(filters),
-    });
+    return this.http
+      .get<PaginatedResponse<ProductListItemDto>>(`${this.baseUrl}/products`, {
+        params: this.toHttpParams(filters),
+      })
+      .pipe(
+        map((res) => ({
+          ...res,
+          items: res.items.map((item) => this.normalizeProductListItem(item)),
+        }))
+      );
   }
 
   /** GET /api/products/featured — Destacadas del inicio (máx. 8) */
@@ -69,7 +77,9 @@ export class ApiClient {
     if (this.shouldUseFallbackOnSsr) {
       return of(FALLBACK_PRODUCTS.filter((p) => p.isFeatured).slice(0, 8));
     }
-    return this.http.get<ProductListItemDto[]>(`${this.baseUrl}/products/featured`);
+    return this.http
+      .get<ProductListItemDto[]>(`${this.baseUrl}/products/featured`)
+      .pipe(map((items) => items.map((item) => this.normalizeProductListItem(item))));
   }
 
   /** GET /api/products/{slug} — Detalle de prenda por slug */
@@ -77,9 +87,9 @@ export class ApiClient {
     if (this.shouldUseFallbackOnSsr) {
       return of(getFallbackProductDetail(slug));
     }
-    return this.http.get<ProductDetailDto>(
-      `${this.baseUrl}/products/${encodeURIComponent(slug)}`
-    );
+    return this.http
+      .get<ProductDetailDto>(`${this.baseUrl}/products/${encodeURIComponent(slug)}`)
+      .pipe(map((product) => this.normalizeProductDetail(product)));
   }
 
   /** GET /api/categories — Categorías activas */
@@ -124,24 +134,37 @@ export class ApiClient {
         items: paginated.items.map((i) => getFallbackProductDetail(i.slug)),
       });
     }
-    return this.http.get<PaginatedResponse<AdminProductDto>>(`${this.baseUrl}/admin/products`, {
-      params: this.toHttpParams(filters),
-    });
+    return this.http
+      .get<PaginatedResponse<AdminProductDto>>(`${this.baseUrl}/admin/products`, {
+        params: this.toHttpParams(filters),
+      })
+      .pipe(
+        map((res) => ({
+          ...res,
+          items: res.items.map((item) => this.normalizeProductDetail(item)),
+        }))
+      );
   }
 
   /** GET /api/admin/products/{id} — Detalle de prenda para edición */
   getAdminProductById(id: number): Observable<AdminProductDto> {
-    return this.http.get<AdminProductDto>(`${this.baseUrl}/admin/products/${id}`);
+    return this.http
+      .get<AdminProductDto>(`${this.baseUrl}/admin/products/${id}`)
+      .pipe(map((product) => this.normalizeProductDetail(product)));
   }
 
   /** POST /api/admin/products — Crear nueva prenda */
   createProduct(payload: CreateProductRequest): Observable<AdminProductDto> {
-    return this.http.post<AdminProductDto>(`${this.baseUrl}/admin/products`, payload);
+    return this.http
+      .post<AdminProductDto>(`${this.baseUrl}/admin/products`, payload)
+      .pipe(map((product) => this.normalizeProductDetail(product)));
   }
 
   /** PUT /api/admin/products/{id} — Actualizar prenda existente */
   updateProduct(id: number, payload: UpdateProductRequest): Observable<AdminProductDto> {
-    return this.http.put<AdminProductDto>(`${this.baseUrl}/admin/products/${id}`, payload);
+    return this.http
+      .put<AdminProductDto>(`${this.baseUrl}/admin/products/${id}`, payload)
+      .pipe(map((product) => this.normalizeProductDetail(product)));
   }
 
   /** DELETE /api/admin/products/{id} — Eliminar prenda */
@@ -170,10 +193,12 @@ export class ApiClient {
       formData.append('sortOrder', String(options.sortOrder));
     }
 
-    return this.http.post<ProductImageDto>(
-      `${this.baseUrl}/admin/products/${productId}/images`,
-      formData
-    );
+    return this.http
+      .post<ProductImageDto>(
+        `${this.baseUrl}/admin/products/${productId}/images`,
+        formData
+      )
+      .pipe(map((img) => this.normalizeProductImage(img)));
   }
 
   /** PUT /api/admin/products/{id}/images/order — Ordenar fotos de una prenda */
@@ -249,8 +274,46 @@ export class ApiClient {
   }
 
   // ==========================================================
-  // UTILIDADES INTERNAS
+  // NORMALIZACIÓN DE MULTIMEDIA Y UTILIDADES INTERNAS
   // ==========================================================
+
+  private resolveImageUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    if (
+      url.startsWith('http://') ||
+      url.startsWith('https://') ||
+      url.startsWith('data:') ||
+      url.startsWith('blob:') ||
+      url.startsWith('assets/') ||
+      url.startsWith('/assets/')
+    ) {
+      return url;
+    }
+    const base = this.mediaBaseUrl.replace(/\/+$/, '');
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return base ? `${base}${cleanUrl}` : cleanUrl;
+  }
+
+  private normalizeProductListItem(item: ProductListItemDto): ProductListItemDto {
+    return {
+      ...item,
+      primaryImageUrl: this.resolveImageUrl(item.primaryImageUrl),
+    };
+  }
+
+  private normalizeProductDetail<T extends ProductDetailDto>(item: T): T {
+    return {
+      ...item,
+      images: (item.images || []).map((img) => this.normalizeProductImage(img)),
+    };
+  }
+
+  private normalizeProductImage(img: ProductImageDto): ProductImageDto {
+    return {
+      ...img,
+      url: this.resolveImageUrl(img.url) || img.url,
+    };
+  }
 
   private toHttpParams(params?: object): HttpParams {
     let httpParams = new HttpParams();

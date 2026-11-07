@@ -1,12 +1,22 @@
 import { InjectionToken } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 /**
  * URL base para todas las peticiones a la API.
- * Por defecto es '/api', pero puede sobreescribirse en SSR o producción si el backend corre en otro host.
+ * Por defecto es '/api' o lo definido en environment.apiUrl.
  */
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
   providedIn: 'root',
-  factory: () => '/api',
+  factory: () => environment.apiUrl ?? '/api',
+});
+
+/**
+ * URL base para servir archivos multimedia (imágenes subidas).
+ * En desarrollo apunta al backend (p. ej. 'http://localhost:5000').
+ */
+export const MEDIA_BASE_URL = new InjectionToken<string>('MEDIA_BASE_URL', {
+  providedIn: 'root',
+  factory: () => environment.mediaBaseUrl ?? '',
 });
 
 /**
