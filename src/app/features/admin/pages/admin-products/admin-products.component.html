@@ -21,6 +21,14 @@
     </div>
   }
 
+  <!-- Mensaje de error -->
+  @if (errorMessage()) {
+    <div class="hs-alert-error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
   <!-- Barra de Filtros -->
   <div class="hs-filter-bar">
     <div class="hs-search-box">
@@ -171,8 +179,9 @@
         </div>
 
         <div class="hs-modal-body">
-          <div class="hs-form-row">
-            <div class="hs-field hs-field--flex2">
+          <!-- Primeros 4 inputs en cuadrícula de 2 columnas con el mismo tamaño -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 hs-modal-grid-2">
+            <div class="hs-field">
               <label class="hs-label" for="prodName">Nombre de la prenda *</label>
               <input
                 id="prodName"
@@ -182,7 +191,8 @@
                 [(ngModel)]="formName"
               />
             </div>
-            <div class="hs-field hs-field--flex1">
+
+            <div class="hs-field">
               <label class="hs-label" for="prodPrice">Precio (RD$) *</label>
               <input
                 id="prodPrice"
@@ -192,9 +202,7 @@
                 [(ngModel)]="formPrice"
               />
             </div>
-          </div>
 
-          <div class="hs-form-row">
             <div class="hs-field">
               <label class="hs-label" for="prodAudience">Audiencia *</label>
               <select id="prodAudience" class="hs-select" [(ngModel)]="formAudience">
@@ -202,11 +210,19 @@
                 <option value="Hombres">Hombres</option>
               </select>
             </div>
+
             <div class="hs-field">
               <label class="hs-label" for="prodCat">Categoría *</label>
-              <select id="prodCat" class="hs-select" [(ngModel)]="formCategoryId">
+              <select
+                id="prodCat"
+                class="hs-select"
+                [ngModel]="formCategoryId()"
+                (ngModelChange)="onCategoryChange($event)"
+              >
                 @for (c of categories(); track c.id) {
-                  <option [value]="c.id">{{ c.name }}</option>
+                  <option [value]="c.id">
+                    {{ c.name }}{{ !c.usesSizes ? ' (Sin tallas)' : '' }}
+                  </option>
                 }
               </select>
             </div>
@@ -261,45 +277,52 @@
             </div>
           </div>
 
-          <!-- Tallas y su disponibilidad individual -->
-          <div class="hs-field">
-            <div class="hs-sizes-header-wrap">
-              <label class="hs-label">Tallas de la prenda</label>
-              <span class="hs-hint">Elige las tallas que aplican:</span>
-            </div>
-            <div class="hs-sizes-selector">
-              @for (s of standardSizes; track s) {
-                <button
-                  type="button"
-                  class="hs-size-btn"
-                  [class.hs-size-btn--selected]="isSizeSelected(s)"
-                  (click)="toggleSize(s)"
-                >
-                  {{ s }}
-                </button>
+          <!-- Tallas y su disponibilidad individual (solo si la categoría admite tallas) -->
+          @if (categoryUsesSizes()) {
+            <div class="hs-field">
+              <div class="hs-sizes-header-wrap">
+                <label class="hs-label">Tallas de la prenda</label>
+                <span class="hs-hint">Elige las tallas que aplican:</span>
+              </div>
+              <div class="hs-sizes-selector">
+                @for (s of standardSizes; track s) {
+                  <button
+                    type="button"
+                    class="hs-size-btn"
+                    [class.hs-size-btn--selected]="isSizeSelected(s)"
+                    (click)="toggleSize(s)"
+                  >
+                    {{ s }}
+                  </button>
+                }
+              </div>
+
+              @if (formSizes().length > 0) {
+                <div class="hs-sizes-stock-manager">
+                  <span class="hs-stock-manager-title">Disponibilidad por talla:</span>
+                  <div class="hs-sizes-chips">
+                    @for (s of formSizes(); track s.label) {
+                      <button
+                        type="button"
+                        class="hs-size-stock-chip"
+                        [class.hs-size-stock-chip--instock]="s.inStock"
+                        (click)="toggleSizeStock(s.label)"
+                        [title]="s.inStock ? 'Clic para marcar talla ' + s.label + ' como agotada' : 'Clic para marcar talla ' + s.label + ' como en stock'"
+                      >
+                        <span class="hs-chip-label">{{ s.label }}</span>
+                        <span class="hs-chip-status">{{ s.inStock ? '✓ En Stock' : '✗ Agotada' }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
               }
             </div>
-
-            @if (formSizes().length > 0) {
-              <div class="hs-sizes-stock-manager">
-                <span class="hs-stock-manager-title">Disponibilidad por talla:</span>
-                <div class="hs-sizes-chips">
-                  @for (s of formSizes(); track s.label) {
-                    <button
-                      type="button"
-                      class="hs-size-stock-chip"
-                      [class.hs-size-stock-chip--instock]="s.inStock"
-                      (click)="toggleSizeStock(s.label)"
-                      [title]="s.inStock ? 'Clic para marcar talla ' + s.label + ' como agotada' : 'Clic para marcar talla ' + s.label + ' como en stock'"
-                    >
-                      <span class="hs-chip-label">{{ s.label }}</span>
-                      <span class="hs-chip-status">{{ s.inStock ? '✓ En Stock' : '✗ Agotada' }}</span>
-                    </button>
-                  }
-                </div>
-              </div>
-            }
-          </div>
+          } @else {
+            <div class="hs-no-sizes-notice">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              <span>Esta categoría no maneja tallas (se guardará como producto de talla única o artículo sin talla).</span>
+            </div>
+          }
 
           <div class="hs-field">
             <label class="hs-label" for="prodDesc">Descripción (opcional)</label>

@@ -50,6 +50,7 @@ export interface CategoryDto {
   usesSizes: boolean;
   sortOrder: number;
   isActive: boolean;
+  imageUrl?: string | null;
 }
 
 export interface UpsertCategoryRequest {
@@ -58,6 +59,7 @@ export interface UpsertCategoryRequest {
   usesSizes: boolean;
   sortOrder: number;
   isActive: boolean;
+  imageUrl?: string | null;
 }
 
 /** Tarjeta visual de categoría para la portada o navegadores de colección */

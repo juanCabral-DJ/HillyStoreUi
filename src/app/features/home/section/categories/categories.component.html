@@ -12,51 +12,92 @@
       </div>
 
       <div class="hs-categories-header__action">
-        <a routerLink="/catalogo" class="hs-catalog-link">
-          <span>Ver catálogo completo</span>
-          <i class="pi pi-arrow-right" aria-hidden="true"></i>
-        </a>
+        <p-button
+          label="Ver catálogo completo"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          [link]="true"
+          routerLink="/catalogo"
+          styleClass="hs-catalog-link-btn"
+        />
       </div>
     </div>
 
-    <!-- Grilla de categorías -->
-    <div class="hs-categories-grid">
-      @for (cat of categories(); track cat.id) {
-        <a
-          [routerLink]="['/catalogo']"
-          [queryParams]="cat.routeQuery"
-          class="hs-cat-card"
-          [attr.aria-label]="'Explorar ' + cat.title"
-        >
-          <!-- Imagen de fondo -->
-          <div class="hs-cat-card__media">
-            <img
-              [src]="cat.imageUrl"
-              [alt]="cat.title"
-              class="hs-cat-card__img"
-              loading="lazy"
-              (error)="onImageError($event)"
-            />
-            <div class="hs-cat-card__overlay"></div>
+    <!-- Skeletons durante la carga: 4 en móvil, hasta 8 en desktop -->
+    @if (loading()) {
+      <div class="hs-categories-grid" aria-hidden="true">
+        @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item; let i = $index) {
+          <div class="hs-cat-skeleton" [class.hs-cat-card--desktop-only]="i >= 4">
+            <p-skeleton width="100%" height="380px" borderRadius="1.5rem" />
           </div>
+        }
+      </div>
+    } @else if (categories().length > 0) {
+      <!-- Grilla de categorías reales desde el backend (máx 4 en móvil, máx 8 en desktop) -->
+      <div class="hs-categories-grid">
+        @for (cat of categories(); track cat.id; let i = $index) {
+          <a
+            [routerLink]="['/catalogo']"
+            [queryParams]="cat.routeQuery"
+            class="hs-cat-card"
+            [class.hs-cat-card--desktop-only]="i >= 4"
+            [attr.aria-label]="'Explorar ' + cat.title"
+          >
+            <!-- Imagen de fondo -->
+            <div class="hs-cat-card__media">
+              <img
+                [src]="cat.imageUrl"
+                [alt]="cat.title"
+                class="hs-cat-card__img"
+                loading="lazy"
+                (error)="onImageError($event)"
+              />
+              <div class="hs-cat-card__overlay"></div>
+            </div>
 
-          <!-- Badge superior -->
-          @if (cat.badge) {
-            <span class="hs-cat-card__badge">{{ cat.badge }}</span>
-          }
+            <!-- Badge superior -->
+            @if (cat.badge) {
+              <span class="hs-cat-card__badge">{{ cat.badge }}</span>
+            }
 
-          <!-- Contenido inferior -->
-          <div class="hs-cat-card__content">
-            <h3 class="hs-cat-card__title">{{ cat.title }}</h3>
-            <p class="hs-cat-card__subtitle">{{ cat.subtitle }}</p>
+            <!-- Contenido inferior -->
+            <div class="hs-cat-card__content">
+              <h3 class="hs-cat-card__title">{{ cat.title }}</h3>
+              <p class="hs-cat-card__subtitle">{{ cat.subtitle }}</p>
 
-            <span class="hs-cat-card__cta">
-              <span>Explorar</span>
-              <i class="pi pi-arrow-right" aria-hidden="true"></i>
-            </span>
-          </div>
-        </a>
-      }
-    </div>
+              <span class="hs-cat-card__cta">
+                <span>Explorar</span>
+                <i class="pi pi-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </a>
+        }
+      </div>
+
+      <!-- Botón p-button tipo link para ir al catálogo en móviles -->
+      <div class="hs-categories-footer">
+        <p-button
+          label="Ver catálogo completo"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          [link]="true"
+          routerLink="/catalogo"
+          styleClass="hs-catalog-link-btn"
+        />
+      </div>
+    } @else {
+      <!-- Estado si no hay categorías registradas aún en el backend -->
+      <div class="hs-empty-categories">
+        <p>Aún no hay categorías registradas en la tienda.</p>
+        <p-button
+          label="Ver catálogo completo"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          [link]="true"
+          routerLink="/catalogo"
+          styleClass="hs-catalog-link-btn"
+        />
+      </div>
+    }
   </div>
 </section>

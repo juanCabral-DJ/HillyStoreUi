@@ -97,7 +97,9 @@ export class ApiClient {
     if (this.shouldUseFallbackOnSsr) {
       return of(FALLBACK_CATEGORIES);
     }
-    return this.http.get<CategoryDto[]>(`${this.baseUrl}/categories`);
+    return this.http
+      .get<CategoryDto[]>(`${this.baseUrl}/categories`)
+      .pipe(map((cats) => (cats || []).map((cat) => this.normalizeCategory(cat))));
   }
 
   /** GET /api/settings — Ajustes de la tienda */
@@ -227,7 +229,9 @@ export class ApiClient {
     if (this.shouldUseFallbackOnSsr) {
       return of(FALLBACK_CATEGORIES);
     }
-    return this.http.get<CategoryDto[]>(`${this.baseUrl}/admin/categories`);
+    return this.http
+      .get<CategoryDto[]>(`${this.baseUrl}/admin/categories`)
+      .pipe(map((cats) => (cats || []).map((cat) => this.normalizeCategory(cat))));
   }
 
   /** POST /api/admin/categories — Crear categoría */
@@ -243,6 +247,16 @@ export class ApiClient {
   /** DELETE /api/admin/categories/{id} — Borrar categoría (no se borra si tiene prendas) */
   deleteCategory(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/admin/categories/${id}`);
+  }
+
+  /** POST /api/admin/categories/{id}/image — Subir foto de categoría */
+  uploadCategoryImage(categoryId: number, file: File): Observable<CategoryDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CategoryDto>(
+      `${this.baseUrl}/admin/categories/${categoryId}/image`,
+      formData
+    );
   }
 
   /** GET /api/admin/faqs — Todas las preguntas frecuentes */
@@ -292,6 +306,13 @@ export class ApiClient {
     const base = this.mediaBaseUrl.replace(/\/+$/, '');
     const cleanUrl = url.startsWith('/') ? url : `/${url}`;
     return base ? `${base}${cleanUrl}` : cleanUrl;
+  }
+
+  private normalizeCategory(cat: CategoryDto): CategoryDto {
+    return {
+      ...cat,
+      imageUrl: this.resolveImageUrl(cat.imageUrl),
+    };
   }
 
   private normalizeProductListItem(item: ProductListItemDto): ProductListItemDto {

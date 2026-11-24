@@ -5,41 +5,6 @@ import { ApiClient } from '../../../../core/api';
 import { SeoService } from '../../../../core/seo';
 import { FaqDto, UpsertFaqRequest } from '../../../../shared/contracts';
 
-const FALLBACK_FAQS: FaqDto[] = [
-  {
-    id: 1,
-    question: '¿Cómo funciona el pedido por encargo de Shein?',
-    answer:
-      'Nos envías el enlace o código de las prendas por WhatsApp. Te cotizamos en pesos dominicanos (RD$). Pagas el 50% de anticipo por transferencia bancaria (Banreservas, Popular o BHD) y el 50% restante cuando tu paquete llegue a Baní en 15 a 20 días.',
-    sortOrder: 1,
-    isActive: true,
-  },
-  {
-    id: 2,
-    question: '¿Tienen tienda física donde pueda medirme la ropa?',
-    answer:
-      '¡Sí! Nuestro local está ubicado en Calle 0001, El Llano, Baní, República Dominicana. Abrimos de lunes a sábado de 9:00 a.m. a 5:00 p.m. Contamos con probador.',
-    sortOrder: 2,
-    isActive: true,
-  },
-  {
-    id: 3,
-    question: '¿Qué métodos de pago aceptan?',
-    answer:
-      'Aceptamos transferencias bancarias locales a cuentas de Banreservas, Banco Popular Dominicano y Banco BHD, así como pago en efectivo al retirar en tienda.',
-    sortOrder: 3,
-    isActive: true,
-  },
-  {
-    id: 4,
-    question: '¿Hacen envíos a domicilio dentro de Baní?',
-    answer:
-      'Sí, coordinamos entregas locales seguras en el casco urbano de Baní y zonas aledañas una vez que tu pedido o prenda esté lista.',
-    sortOrder: 4,
-    isActive: true,
-  },
-];
-
 @Component({
   selector: 'app-admin-faqs',
   standalone: true,
@@ -51,9 +16,10 @@ export class AdminFaqsComponent implements OnInit {
   private readonly api = inject(ApiClient);
   private readonly seo = inject(SeoService);
 
-  readonly faqs = signal<FaqDto[]>(FALLBACK_FAQS);
+  readonly faqs = signal<FaqDto[]>([]);
   readonly loading = signal<boolean>(false);
   readonly successMessage = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(null);
 
   // Modal Crear / Editar
   readonly isModalOpen = signal<boolean>(false);
@@ -80,12 +46,11 @@ export class AdminFaqsComponent implements OnInit {
     this.loading.set(true);
     this.api.getAdminFaqs().subscribe({
       next: (res) => {
-        if (res && res.length > 0) {
-          this.faqs.set(res);
-        }
+        this.faqs.set(res || []);
         this.loading.set(false);
       },
       error: () => {
+        this.faqs.set([]);
         this.loading.set(false);
       },
     });
@@ -132,41 +97,26 @@ export class AdminFaqsComponent implements OnInit {
           this.faqs.update((list) =>
             list.map((f) => (f.id === editId ? updated : f))
           );
-          this.notify('Pregunta actualizada.');
+          this.notify('Pregunta actualizada correctamente.');
         },
-        error: () => {
-          this.faqs.update((list) =>
-            list.map((f) =>
-              f.id === editId
-                ? {
-                    ...f,
-                    question: payload.question,
-                    answer: payload.answer,
-                    sortOrder: payload.sortOrder,
-                    isActive: payload.isActive,
-                  }
-                : f
-            )
+        error: (err) => {
+          this.notify(
+            err?.error?.message || 'Error al actualizar pregunta en el servidor. Verifica el backend.',
+            true
           );
-          this.notify('Pregunta guardada localmente.');
         },
       });
     } else {
       this.api.createFaq(payload).subscribe({
         next: (created) => {
           this.faqs.update((list) => [...list, created]);
-          this.notify('Pregunta creada.');
+          this.notify('Pregunta creada con éxito en el servidor.');
         },
-        error: () => {
-          const newFaq: FaqDto = {
-            id: Date.now(),
-            question: payload.question,
-            answer: payload.answer,
-            sortOrder: payload.sortOrder,
-            isActive: payload.isActive,
-          };
-          this.faqs.update((list) => [...list, newFaq]);
-          this.notify('Pregunta creada localmente.');
+        error: (err) => {
+          this.notify(
+            err?.error?.message || 'Error al crear pregunta en el servidor. Verifica el backend.',
+            true
+          );
         },
       });
     }
@@ -193,19 +143,28 @@ export class AdminFaqsComponent implements OnInit {
         this.faqs.update((list) => list.filter((f) => f.id !== target.id));
         this.notify('Pregunta eliminada.');
       },
-      error: () => {
-        this.faqs.update((list) => list.filter((f) => f.id !== target.id));
-        this.notify('Pregunta eliminada.');
+      error: (err) => {
+        this.notify(
+          err?.error?.message || 'Error al eliminar pregunta en el servidor. Verifica el backend.',
+          true
+        );
       },
     });
 
     this.cancelDelete();
   }
 
-  private notify(msg: string): void {
-    this.successMessage.set(msg);
-    setTimeout(() => {
-      this.successMessage.set(null);
-    }, 4000);
+  private notify(msg: string, isError = false): void {
+    if (isError) {
+      this.errorMessage.set(msg);
+      setTimeout(() => {
+        this.errorMessage.set(null);
+      }, 5000);
+    } else {
+      this.successMessage.set(msg);
+      setTimeout(() => {
+        this.successMessage.set(null);
+      }, 4000);
+    }
   }
 }

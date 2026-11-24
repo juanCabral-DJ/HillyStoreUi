@@ -51,6 +51,11 @@ img {
   display: block;
 }
 
+/* Desplazamiento suave y margen para anclas (#como-pedir, #visitanos, etc.) bajo el header sticky */
+[id] {
+  scroll-margin-top: 5rem;
+}
+
 /* Contenedor centrado mobile-first */
 .hs-container {
   width: 100%;
@@ -134,6 +139,10 @@ img {
 
 /* En dispositivos móviles (pantallas pequeñas), asegurar visibilidad inmediata de headers y componentes sin depender de scroll o animaciones */
 @media (max-width: 768px) {
+  [pAnimateOnScroll] {
+    opacity: 1 !important;
+  }
+
   .hs-enter-fade-up,
   .hs-enter-fade-in,
   .hs-enter-scale {

@@ -103,6 +103,25 @@
   color: #86efac;
 }
 
+.hs-alert-error {
+  padding: 0.75rem 1rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 0.65rem;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+:host-context(html.app-dark) .hs-alert-error {
+  background-color: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
 .hs-table-loading {
   padding: 3rem 1.5rem;
   text-align: center;

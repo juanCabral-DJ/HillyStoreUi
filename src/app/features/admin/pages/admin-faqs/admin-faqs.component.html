@@ -19,6 +19,13 @@
     </div>
   }
 
+  @if (errorMessage()) {
+    <div class="hs-alert-error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
   <div class="hs-faqs-list">
     @if (loading()) {
       <div class="hs-table-loading">

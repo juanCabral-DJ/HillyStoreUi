@@ -5,18 +5,6 @@ import { ApiClient } from '../../../../core/api';
 import { SeoService } from '../../../../core/seo';
 import { CategoryDto, UpsertCategoryRequest } from '../../../../shared/contracts';
 
-const FALLBACK_CATEGORIES: CategoryDto[] = [
-  { id: 1, name: 'Vestidos', slug: 'vestidos', usesSizes: true, sortOrder: 1, isActive: true },
-  { id: 2, name: 'Camisas', slug: 'camisas', usesSizes: true, sortOrder: 2, isActive: true },
-  { id: 3, name: 'Tops & Blusas', slug: 'tops-y-blusas', usesSizes: true, sortOrder: 3, isActive: true },
-  { id: 4, name: 'Polos & T-Shirts', slug: 'polos-y-t-shirts', usesSizes: true, sortOrder: 4, isActive: true },
-  { id: 5, name: 'Pantalones & Jeans', slug: 'pantalones-y-jeans', usesSizes: true, sortOrder: 5, isActive: true },
-  { id: 6, name: 'Conjuntos & Blazers', slug: 'conjuntos-y-blazers', usesSizes: true, sortOrder: 6, isActive: true },
-  { id: 7, name: 'Shorts & Bermudas', slug: 'shorts-y-bermudas', usesSizes: true, sortOrder: 7, isActive: true },
-  { id: 8, name: 'Accesorios', slug: 'accesorios', usesSizes: false, sortOrder: 8, isActive: true },
-  { id: 9, name: 'Colonias & Splashes', slug: 'colonias-y-splashes', usesSizes: false, sortOrder: 9, isActive: true },
-];
-
 @Component({
   selector: 'app-admin-categories',
   standalone: true,
@@ -28,17 +16,22 @@ export class AdminCategoriesComponent implements OnInit {
   private readonly api = inject(ApiClient);
   private readonly seo = inject(SeoService);
 
-  readonly categories = signal<CategoryDto[]>(FALLBACK_CATEGORIES);
+  readonly categories = signal<CategoryDto[]>([]);
   readonly loading = signal<boolean>(false);
   readonly successMessage = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(null);
 
   // Modal Crear / Editar
   readonly isModalOpen = signal<boolean>(false);
   readonly editingCategoryId = signal<number | null>(null);
   readonly formName = signal<string>('');
+  readonly formImageUrl = signal<string | null>(null);
+  readonly imagePreview = signal<string | null>(null);
+  readonly selectedFile = signal<File | null>(null);
   readonly formUsesSizes = signal<boolean>(true);
   readonly formSortOrder = signal<number>(1);
   readonly formIsActive = signal<boolean>(true);
+  readonly isUploading = signal<boolean>(false);
 
   // Modal Borrar
   readonly isDeleteModalOpen = signal<boolean>(false);
@@ -57,12 +50,11 @@ export class AdminCategoriesComponent implements OnInit {
     this.loading.set(true);
     this.api.getAdminCategories().subscribe({
       next: (cats) => {
-        if (cats && cats.length > 0) {
-          this.categories.set(cats);
-        }
+        this.categories.set(cats || []);
         this.loading.set(false);
       },
       error: () => {
+        this.categories.set([]);
         this.loading.set(false);
       },
     });
@@ -71,6 +63,9 @@ export class AdminCategoriesComponent implements OnInit {
   openCreateModal(): void {
     this.editingCategoryId.set(null);
     this.formName.set('');
+    this.formImageUrl.set(null);
+    this.imagePreview.set(null);
+    this.selectedFile.set(null);
     this.formUsesSizes.set(true);
     this.formSortOrder.set(this.categories().length + 1);
     this.formIsActive.set(true);
@@ -80,6 +75,9 @@ export class AdminCategoriesComponent implements OnInit {
   openEditModal(c: CategoryDto): void {
     this.editingCategoryId.set(c.id);
     this.formName.set(c.name);
+    this.formImageUrl.set(c.imageUrl || null);
+    this.imagePreview.set(c.imageUrl || null);
+    this.selectedFile.set(null);
     this.formUsesSizes.set(c.usesSizes);
     this.formSortOrder.set(c.sortOrder);
     this.formIsActive.set(c.isActive);
@@ -88,6 +86,26 @@ export class AdminCategoriesComponent implements OnInit {
 
   closeModal(): void {
     this.isModalOpen.set(false);
+    this.selectedFile.set(null);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      this.selectedFile.set(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview.set(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage(): void {
+    this.selectedFile.set(null);
+    this.imagePreview.set(null);
+    this.formImageUrl.set(null);
   }
 
   saveCategory(): void {
@@ -100,52 +118,78 @@ export class AdminCategoriesComponent implements OnInit {
       usesSizes: this.formUsesSizes(),
       sortOrder: this.formSortOrder(),
       isActive: this.formIsActive(),
+      imageUrl: this.formImageUrl(),
     };
 
     const editId = this.editingCategoryId();
+    const fileToUpload = this.selectedFile();
+
     if (editId !== null) {
+      this.isUploading.set(true);
       this.api.updateCategory(editId, payload).subscribe({
         next: (updated) => {
-          this.categories.update((list) =>
-            list.map((c) => (c.id === editId ? updated : c))
-          );
-          this.notify('Categoría actualizada.');
+          if (fileToUpload) {
+            this.api.uploadCategoryImage(editId, fileToUpload).subscribe({
+              next: (withImage) => {
+                this.categories.update((list) =>
+                  list.map((c) => (c.id === editId ? withImage : c))
+                );
+                this.isUploading.set(false);
+                this.notify('Categoría y foto actualizadas.');
+              },
+              error: () => {
+                this.categories.update((list) =>
+                  list.map((c) => (c.id === editId ? updated : c))
+                );
+                this.isUploading.set(false);
+                this.notify('Categoría actualizada (error al subir foto).');
+              },
+            });
+          } else {
+            this.categories.update((list) =>
+              list.map((c) => (c.id === editId ? updated : c))
+            );
+            this.isUploading.set(false);
+            this.notify('Categoría actualizada.');
+          }
         },
-        error: () => {
-          this.categories.update((list) =>
-            list.map((c) =>
-              c.id === editId
-                ? {
-                    ...c,
-                    name: payload.name,
-                    slug: payload.slug || c.slug,
-                    usesSizes: payload.usesSizes,
-                    sortOrder: payload.sortOrder,
-                    isActive: payload.isActive,
-                  }
-                : c
-            )
+        error: (err) => {
+          this.isUploading.set(false);
+          this.notify(
+            err?.error?.message || 'Error al actualizar categoría en el servidor. Verifica el backend.',
+            true
           );
-          this.notify('Categoría guardada localmente.');
         },
       });
     } else {
+      this.isUploading.set(true);
       this.api.createCategory(payload).subscribe({
         next: (created) => {
-          this.categories.update((list) => [...list, created]);
-          this.notify('Categoría creada.');
+          if (fileToUpload) {
+            this.api.uploadCategoryImage(created.id, fileToUpload).subscribe({
+              next: (withImage) => {
+                this.categories.update((list) => [...list, withImage]);
+                this.isUploading.set(false);
+                this.notify('Categoría creada con foto.');
+              },
+              error: () => {
+                this.categories.update((list) => [...list, created]);
+                this.isUploading.set(false);
+                this.notify('Categoría creada (error al subir foto).', true);
+              },
+            });
+          } else {
+            this.categories.update((list) => [...list, created]);
+            this.isUploading.set(false);
+            this.notify('Categoría creada con éxito en el servidor.');
+          }
         },
-        error: () => {
-          const newCat: CategoryDto = {
-            id: Date.now(),
-            name: payload.name,
-            slug: payload.slug || 'cat',
-            usesSizes: payload.usesSizes,
-            sortOrder: payload.sortOrder,
-            isActive: payload.isActive,
-          };
-          this.categories.update((list) => [...list, newCat]);
-          this.notify('Categoría creada localmente.');
+        error: (err) => {
+          this.isUploading.set(false);
+          this.notify(
+            err?.error?.message || 'Error al crear la categoría en el servidor. Verifica el backend.',
+            true
+          );
         },
       });
     }
@@ -170,21 +214,30 @@ export class AdminCategoriesComponent implements OnInit {
     this.api.deleteCategory(target.id).subscribe({
       next: () => {
         this.categories.update((list) => list.filter((c) => c.id !== target.id));
-        this.notify('Categoría eliminada.');
+        this.notify('Categoría eliminada correctamente.');
       },
-      error: () => {
-        this.categories.update((list) => list.filter((c) => c.id !== target.id));
-        this.notify('Categoría eliminada.');
+      error: (err) => {
+        this.notify(
+          err?.error?.message || 'Error al eliminar categoría en el servidor. Verifica el backend.',
+          true
+        );
       },
     });
 
     this.cancelDelete();
   }
 
-  private notify(msg: string): void {
-    this.successMessage.set(msg);
-    setTimeout(() => {
-      this.successMessage.set(null);
-    }, 4000);
+  private notify(msg: string, isError = false): void {
+    if (isError) {
+      this.errorMessage.set(msg);
+      setTimeout(() => {
+        this.errorMessage.set(null);
+      }, 5000);
+    } else {
+      this.successMessage.set(msg);
+      setTimeout(() => {
+        this.successMessage.set(null);
+      }, 4000);
+    }
   }
 }

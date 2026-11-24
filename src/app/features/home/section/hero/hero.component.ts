@@ -1,13 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AnimateOnScroll } from 'primeng/animateonscroll';
 import { SettingsService, WhatsappService } from '../../../../core';
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-hero',
   standalone: true,
-  imports: [RouterLink, AnimateOnScroll, NgOptimizedImage],
+  imports: [RouterLink, NgOptimizedImage],
   templateUrl: './hero.component.html',
   styleUrl: './hero.component.scss',
 })

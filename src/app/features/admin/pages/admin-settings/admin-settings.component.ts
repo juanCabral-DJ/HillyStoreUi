@@ -40,17 +40,33 @@ export class AdminSettingsComponent implements OnInit {
       canonicalPath: '/admin/ajustes',
     });
 
-    const current = this.settingsService.settings();
-    this.whatsAppNumber.set(current.whatsAppNumber || '');
-    this.address.set(current.address || 'Calle 0001, El Llano, Baní, República Dominicana');
-    this.opensAt.set(current.opensAt || '09:00');
-    this.closesAt.set(current.closesAt || '17:00');
-    this.depositPercentage.set(current.depositPercentage || 50);
-    this.sheinMinDays.set(current.sheinMinDays || 15);
-    this.sheinMaxDays.set(current.sheinMaxDays || 20);
-    this.instagramUrl.set(current.instagramUrl || 'https://instagram.com/hillystore');
-    this.facebookUrl.set(current.facebookUrl || '');
-    this.tiktokUrl.set(current.tiktokUrl || '');
+    this.settingsService.load(true).subscribe({
+      next: (current) => {
+        this.whatsAppNumber.set(current.whatsAppNumber || '');
+        this.address.set(current.address || 'Calle 0001, El Llano, Baní, República Dominicana');
+        this.opensAt.set(current.opensAt || '09:00');
+        this.closesAt.set(current.closesAt || '17:00');
+        this.depositPercentage.set(current.depositPercentage || 50);
+        this.sheinMinDays.set(current.sheinMinDays || 15);
+        this.sheinMaxDays.set(current.sheinMaxDays || 20);
+        this.instagramUrl.set(current.instagramUrl || 'https://instagram.com/hillystore');
+        this.facebookUrl.set(current.facebookUrl || '');
+        this.tiktokUrl.set(current.tiktokUrl || '');
+      },
+      error: () => {
+        const current = this.settingsService.settings();
+        this.whatsAppNumber.set(current.whatsAppNumber || '');
+        this.address.set(current.address || 'Calle 0001, El Llano, Baní, República Dominicana');
+        this.opensAt.set(current.opensAt || '09:00');
+        this.closesAt.set(current.closesAt || '17:00');
+        this.depositPercentage.set(current.depositPercentage || 50);
+        this.sheinMinDays.set(current.sheinMinDays || 15);
+        this.sheinMaxDays.set(current.sheinMaxDays || 20);
+        this.instagramUrl.set(current.instagramUrl || 'https://instagram.com/hillystore');
+        this.facebookUrl.set(current.facebookUrl || '');
+        this.tiktokUrl.set(current.tiktokUrl || '');
+      },
+    });
   }
 
   onSave(): void {
@@ -74,12 +90,15 @@ export class AdminSettingsComponent implements OnInit {
     this.api.updateSettings(payload).subscribe({
       next: (updated: StoreSettingsDto) => {
         this.isSaving.set(false);
-        this.successMessage.set('Ajustes guardados correctamente.');
+        this.settingsService.setSettings(updated);
+        this.successMessage.set('Ajustes guardados correctamente en el servidor.');
       },
-      error: () => {
-        // Fallback local
+      error: (err) => {
         this.isSaving.set(false);
-        this.successMessage.set('Ajustes actualizados en la aplicación.');
+        this.errorMessage.set(
+          err?.error?.message ||
+            'Error al guardar en el servidor. Verifica que el backend esté ejecutándose en http://localhost:5000'
+        );
       },
     });
   }

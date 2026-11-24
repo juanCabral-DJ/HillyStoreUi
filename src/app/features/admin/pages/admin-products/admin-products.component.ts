@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiClient } from '../../../../core/api';
 import { SeoService } from '../../../../core/seo';
@@ -13,95 +13,6 @@ import {
 
 const DEFAULT_SIZES: string[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '30', '32', '34'];
 
-const INITIAL_FALLBACK_PRODUCTS: AdminProductDto[] = [
-  {
-    id: 1,
-    name: 'Vestido Tropical Floral Maxi',
-    slug: 'vestido-tropical-floral-maxi',
-    description: 'Vestido fresco ideal para clima caribeño en Baní. Tela suave de alta calidad.',
-    price: 1850,
-    audience: 'Mujeres',
-    isAvailable: true,
-    isFeatured: true,
-    categoryId: 1,
-    categoryName: 'Vestidos',
-    categorySlug: 'vestidos',
-    usesSizes: true,
-    sizes: [
-      { id: 1, label: 'S', inStock: true },
-      { id: 2, label: 'M', inStock: true },
-      { id: 3, label: 'L', inStock: false },
-    ],
-    images: [{ id: 1, url: '/hero.png', sortOrder: 1, isPrimary: true }],
-    createdAt: '2026-11-01T10:00:00Z',
-    updatedAt: '2026-11-01T10:00:00Z',
-  },
-  {
-    id: 2,
-    name: 'Camisa Guayabera Lino Blanco',
-    slug: 'camisa-guayabera-lino-blanco',
-    description: 'Elegancia clásica y frescura para ocasiones especiales o diario.',
-    price: 2200,
-    audience: 'Hombres',
-    isAvailable: true,
-    isFeatured: true,
-    categoryId: 2,
-    categoryName: 'Camisas',
-    categorySlug: 'camisas',
-    usesSizes: true,
-    sizes: [
-      { id: 4, label: 'M', inStock: true },
-      { id: 5, label: 'L', inStock: true },
-      { id: 6, label: 'XL', inStock: true },
-    ],
-    images: [{ id: 2, url: '/hero.png', sortOrder: 1, isPrimary: true }],
-    createdAt: '2026-11-01T11:00:00Z',
-    updatedAt: '2026-11-01T11:00:00Z',
-  },
-  {
-    id: 3,
-    name: 'Blusa Satén Escote Elegante',
-    slug: 'blusa-saten-escote-elegante',
-    description: 'Tacto sedoso con acabado brillante sutil para salidas o eventos.',
-    price: 1450,
-    audience: 'Mujeres',
-    isAvailable: true,
-    isFeatured: false,
-    categoryId: 3,
-    categoryName: 'Tops & Blusas',
-    categorySlug: 'tops-y-blusas',
-    usesSizes: true,
-    sizes: [
-      { id: 7, label: 'S', inStock: true },
-      { id: 8, label: 'M', inStock: true },
-    ],
-    images: [{ id: 3, url: '/hero.png', sortOrder: 1, isPrimary: true }],
-    createdAt: '2026-11-01T12:00:00Z',
-    updatedAt: '2026-11-01T12:00:00Z',
-  },
-  {
-    id: 4,
-    name: 'Polo Piqué Clásico Marino',
-    slug: 'polo-pique-clasico-marino',
-    description: 'Algodón transpirable, corte moderno y cuello estructurado.',
-    price: 1600,
-    audience: 'Hombres',
-    isAvailable: false,
-    isFeatured: false,
-    categoryId: 4,
-    categoryName: 'Polos & T-Shirts',
-    categorySlug: 'polos-y-t-shirts',
-    usesSizes: true,
-    sizes: [
-      { id: 9, label: 'M', inStock: false },
-      { id: 10, label: 'L', inStock: false },
-    ],
-    images: [{ id: 4, url: '/hero.png', sortOrder: 1, isPrimary: true }],
-    createdAt: '2026-11-01T13:00:00Z',
-    updatedAt: '2026-11-01T13:00:00Z',
-  },
-];
-
 @Component({
   selector: 'app-admin-products',
   standalone: true,
@@ -113,10 +24,11 @@ export class AdminProductsComponent implements OnInit {
   private readonly api = inject(ApiClient);
   private readonly seo = inject(SeoService);
 
-  readonly products = signal<AdminProductDto[]>(INITIAL_FALLBACK_PRODUCTS);
+  readonly products = signal<AdminProductDto[]>([]);
   readonly categories = signal<CategoryDto[]>([]);
   readonly loading = signal<boolean>(false);
   readonly successMessage = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(null);
 
   // Filtros
   readonly searchFilter = signal<string>('');
@@ -141,6 +53,12 @@ export class AdminProductsComponent implements OnInit {
 
   // Tallas disponibles para selección
   readonly standardSizes = DEFAULT_SIZES;
+
+  readonly categoryUsesSizes = computed(() => {
+    const catId = Number(this.formCategoryId());
+    const cat = this.categories().find((c) => c.id === catId);
+    return cat ? cat.usesSizes : true;
+  });
 
   // Modal Confirmar Borrado
   readonly isDeleteConfirmOpen = signal<boolean>(false);
@@ -218,18 +136,24 @@ export class AdminProductsComponent implements OnInit {
     this.formDescription.set('');
     this.formPrice.set(1500);
     this.formAudience.set('Mujeres');
-    const firstCat = this.categories()[0]?.id ?? 1;
+    const firstCatObj = this.categories()[0];
+    const firstCat = firstCatObj?.id ?? 1;
     this.formCategoryId.set(firstCat);
     this.formIsAvailable.set(true);
     this.formIsFeatured.set(false);
     this.formImageUrl.set('');
     this.selectedFile.set(null);
     this.previewImageUrl.set('');
-    this.formSizes.set([
-      { label: 'S', inStock: true },
-      { label: 'M', inStock: true },
-      { label: 'L', inStock: true },
-    ]);
+
+    if (firstCatObj && !firstCatObj.usesSizes) {
+      this.formSizes.set([]);
+    } else {
+      this.formSizes.set([
+        { label: 'S', inStock: true },
+        { label: 'M', inStock: true },
+        { label: 'L', inStock: true },
+      ]);
+    }
     this.isModalOpen.set(true);
   }
 
@@ -248,12 +172,19 @@ export class AdminProductsComponent implements OnInit {
     this.previewImageUrl.set(initialImg);
     this.selectedFile.set(null);
 
-    const sizes = (p.sizes || []).map((s) => ({ label: s.label, inStock: s.inStock }));
-    if (sizes.length === 0 && (p as any).availableSizes) {
-      const avail = ((p as any).availableSizes as string[]) || [];
-      avail.forEach((lbl) => sizes.push({ label: lbl, inStock: true }));
+    const cat = this.categories().find((c) => c.id === p.categoryId);
+    const usesSizes = cat ? cat.usesSizes : ((p as any).usesSizes ?? true);
+
+    if (!usesSizes) {
+      this.formSizes.set([]);
+    } else {
+      const sizes = (p.sizes || []).map((s) => ({ label: s.label, inStock: s.inStock }));
+      if (sizes.length === 0 && (p as any).availableSizes) {
+        const avail = ((p as any).availableSizes as string[]) || [];
+        avail.forEach((lbl) => sizes.push({ label: lbl, inStock: true }));
+      }
+      this.formSizes.set(sizes);
     }
-    this.formSizes.set(sizes);
     this.isModalOpen.set(true);
 
     // Obtener detalles completos de la prenda desde el backend (por si la lista resumida no trajo todas las tallas o fotos)
@@ -271,7 +202,11 @@ export class AdminProductsComponent implements OnInit {
             this.formImageUrl.set(full.images[0].url);
             this.previewImageUrl.set(full.images[0].url);
           }
-          if (full.sizes && full.sizes.length > 0) {
+          const fullCat = this.categories().find((c) => c.id === full.categoryId);
+          const fullUsesSizes = fullCat ? fullCat.usesSizes : (full.usesSizes ?? true);
+          if (!fullUsesSizes) {
+            this.formSizes.set([]);
+          } else if (full.sizes && full.sizes.length > 0) {
             this.formSizes.set(full.sizes.map((s) => ({ label: s.label, inStock: s.inStock })));
           }
         }
@@ -280,6 +215,21 @@ export class AdminProductsComponent implements OnInit {
         // En caso de fallo de red, se mantienen los valores ya cargados desde la fila
       },
     });
+  }
+
+  onCategoryChange(catId: any): void {
+    const id = Number(catId);
+    this.formCategoryId.set(id);
+    const cat = this.categories().find((c) => c.id === id);
+    if (cat && !cat.usesSizes) {
+      this.formSizes.set([]);
+    } else if (this.formSizes().length === 0) {
+      this.formSizes.set([
+        { label: 'S', inStock: true },
+        { label: 'M', inStock: true },
+        { label: 'L', inStock: true },
+      ]);
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -337,15 +287,16 @@ export class AdminProductsComponent implements OnInit {
     const name = this.formName().trim();
     if (!name) return;
 
+    const usesSizes = this.categoryUsesSizes();
     const payload: CreateProductRequest = {
       name,
       description: this.formDescription().trim() || null,
       price: this.formPrice(),
       audience: this.formAudience(),
-      categoryId: this.formCategoryId(),
+      categoryId: Number(this.formCategoryId()),
       isAvailable: this.formIsAvailable(),
       isFeatured: this.formIsFeatured(),
-      sizes: this.formSizes(),
+      sizes: usesSizes ? this.formSizes() : [],
     };
 
     const editId = this.editingProductId();
@@ -364,33 +315,13 @@ export class AdminProductsComponent implements OnInit {
           this.products.update((list) =>
             list.map((item) => (item.id === editId ? updated : item))
           );
-          this.notify('Prenda actualizada correctamente.');
+          this.notify('Prenda actualizada correctamente en el servidor.');
         },
-        error: () => {
-          // Fallback actualización local
-          this.products.update((list) =>
-            list.map((item) =>
-              item.id === editId
-                ? {
-                    ...item,
-                    name: payload.name,
-                    description: payload.description ?? null,
-                    price: payload.price,
-                    audience: payload.audience,
-                    categoryId: payload.categoryId,
-                    categoryName: catName,
-                    categorySlug: catSlug,
-                    isAvailable: payload.isAvailable,
-                    isFeatured: payload.isFeatured,
-                    sizes: payload.sizes.map((s, idx) => ({ id: idx + 1, label: s.label, inStock: s.inStock })),
-                    images: this.previewImageUrl()
-                      ? [{ id: 1, url: this.previewImageUrl(), sortOrder: 1, isPrimary: true }]
-                      : item.images,
-                  }
-                : item
-            )
+        error: (err) => {
+          this.notify(
+            err?.error?.message || 'Error al actualizar prenda en el servidor. Verifica el backend.',
+            true
           );
-          this.notify('Prenda guardada localmente.');
         },
       });
     } else {
@@ -401,37 +332,13 @@ export class AdminProductsComponent implements OnInit {
             this.uploadAndAttachImage(created.id, fileToUpload);
           }
           this.products.update((list) => [created, ...list]);
-          this.notify('Prenda creada con éxito.');
+          this.notify('Prenda creada con éxito en el servidor.');
         },
-        error: () => {
-          // Fallback creación local
-          const newProduct: AdminProductDto = {
-            id: Date.now(),
-            name: payload.name,
-            slug: payload.name.toLowerCase().replace(/\s+/g, '-'),
-            description: payload.description ?? null,
-            price: payload.price,
-            audience: payload.audience,
-            categoryId: payload.categoryId,
-            categoryName: catName,
-            categorySlug: catSlug,
-            isAvailable: payload.isAvailable,
-            isFeatured: payload.isFeatured,
-            usesSizes: payload.sizes.length > 0,
-            sizes: payload.sizes.map((s, idx) => ({ id: idx + 1, label: s.label, inStock: s.inStock })),
-            images: [
-              {
-                id: 1,
-                url: this.previewImageUrl() || '/hero.png',
-                sortOrder: 1,
-                isPrimary: true,
-              },
-            ],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-          this.products.update((list) => [newProduct, ...list]);
-          this.notify('Prenda añadida localmente.');
+        error: (err) => {
+          this.notify(
+            err?.error?.message || 'Error al crear la prenda en el servidor. Verifica el backend.',
+            true
+          );
         },
       });
     }
@@ -474,10 +381,10 @@ export class AdminProductsComponent implements OnInit {
           list.map((item) => (item.id === p.id ? { ...item, isAvailable: nextVal } : item))
         );
       },
-      error: () => {
-        // Optimistic toggle
-        this.products.update((list) =>
-          list.map((item) => (item.id === p.id ? { ...item, isAvailable: nextVal } : item))
+      error: (err) => {
+        this.notify(
+          err?.error?.message || 'Error al actualizar disponibilidad en el servidor.',
+          true
         );
       },
     });
@@ -500,21 +407,30 @@ export class AdminProductsComponent implements OnInit {
     this.api.deleteProduct(target.id).subscribe({
       next: () => {
         this.products.update((list) => list.filter((item) => item.id !== target.id));
-        this.notify('Prenda eliminada.');
+        this.notify('Prenda eliminada correctamente.');
       },
-      error: () => {
-        this.products.update((list) => list.filter((item) => item.id !== target.id));
-        this.notify('Prenda eliminada.');
+      error: (err) => {
+        this.notify(
+          err?.error?.message || 'Error al eliminar prenda en el servidor. Verifica el backend.',
+          true
+        );
       },
     });
 
     this.cancelDelete();
   }
 
-  private notify(msg: string): void {
-    this.successMessage.set(msg);
-    setTimeout(() => {
-      this.successMessage.set(null);
-    }, 4000);
+  private notify(msg: string, isError = false): void {
+    if (isError) {
+      this.errorMessage.set(msg);
+      setTimeout(() => {
+        this.errorMessage.set(null);
+      }, 5000);
+    } else {
+      this.successMessage.set(msg);
+      setTimeout(() => {
+        this.successMessage.set(null);
+      }, 4000);
+    }
   }
 }

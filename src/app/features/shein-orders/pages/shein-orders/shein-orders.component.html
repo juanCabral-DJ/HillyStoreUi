@@ -276,14 +276,14 @@
             type="button"
             class="hs-btn-submit-wa"
             (click)="onSubmitOrder()"
-            [attr.aria-label]="'Enviar pedido de ' + items().length + ' artículos a WhatsApp'"
+            [attr.aria-label]="'Enviar pedido a WhatsApp'"
           >
             <i class="pi pi-whatsapp" aria-hidden="true"></i>
             <span>
               @if (items().length === 0) {
                 Enviar pedido a WhatsApp
               } @else {
-                Enviar pedido a WhatsApp ({{ items().length }} {{ items().length === 1 ? 'prenda' : 'prendas' }})
+                Enviar pedido a WhatsApp
               }
             </span>
           </button>

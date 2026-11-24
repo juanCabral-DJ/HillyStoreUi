@@ -29,6 +29,7 @@
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
+  animation: hsFadeIn 0.35s ease-out;
 }
 
 .hs-hero__eyebrow {
@@ -150,6 +151,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  animation: hsFadeIn 0.45s ease-out;
 
   @media (min-width: 992px) {
     justify-content: flex-end;

@@ -19,6 +19,13 @@
     </div>
   }
 
+  @if (errorMessage()) {
+    <div class="hs-alert-error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
   <div class="hs-table-container">
     @if (loading()) {
       <div class="hs-table-loading">
@@ -30,6 +37,7 @@
         <thead>
           <tr>
             <th>Orden</th>
+            <th>Foto</th>
             <th>Nombre</th>
             <th>Tallas</th>
             <th>Estado</th>
@@ -43,8 +51,18 @@
                 <span class="hs-order-badge">#{{ c.sortOrder }}</span>
               </td>
               <td>
+                <div class="hs-cat-thumbnail">
+                  @if (c.imageUrl) {
+                    <img [src]="c.imageUrl" [alt]="c.name" class="hs-cat-img" />
+                  } @else {
+                    <div class="hs-cat-img-placeholder">
+                      <i class="pi pi-image" aria-hidden="true"></i>
+                    </div>
+                  }
+                </div>
+              </td>
+              <td>
                 <strong class="hs-cat-name">{{ c.name }}</strong>
-                <span class="hs-cat-slug">/catalogo?categoria={{ c.slug }}</span>
               </td>
               <td>
                 <span class="hs-uses-sizes-tag">
@@ -111,6 +129,38 @@
               placeholder="Ej. Vestidos, Pantalones..."
               [(ngModel)]="formName"
             />
+          </div>
+
+          <div class="hs-field">
+            <label class="hs-label">Foto de portada (opcional)</label>
+            @if (imagePreview()) {
+              <div class="hs-cat-image-preview">
+                <img [src]="imagePreview()!" alt="Vista previa de categoría" class="hs-preview-img" />
+                <button
+                  type="button"
+                  class="hs-btn-remove-img"
+                  (click)="removeImage()"
+                  title="Quitar foto"
+                >
+                  <i class="pi pi-trash" aria-hidden="true"></i>
+                  <span>Quitar foto</span>
+                </button>
+              </div>
+            } @else {
+              <label class="hs-cat-upload-dropzone">
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  class="hs-hidden-file-input"
+                  (change)="onFileSelected($event)"
+                />
+                <i class="pi pi-cloud-upload hs-upload-icon" aria-hidden="true"></i>
+                <span class="hs-upload-prompt">
+                  <strong>Haz clic para subir foto</strong> o arrastra aquí
+                </span>
+                <span class="hs-upload-hint">PNG, JPG o WebP (optimización automática)</span>
+              </label>
+            }
           </div>
 
           <div class="hs-field">

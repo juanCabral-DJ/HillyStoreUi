@@ -213,6 +213,16 @@
           </div>
         </section>
       }
+    } @else {
+      <div class="hs-empty-state text-center py-12" style="padding: 4rem 1rem; text-align: center;">
+        <i class="pi pi-exclamation-circle text-4xl mb-3" style="font-size: 2.5rem; color: #a1a1aa;" aria-hidden="true"></i>
+        <h2 class="text-xl font-bold mb-2">Prenda no encontrada</h2>
+        <p class="mb-4" style="color: #71717a;">Esta prenda no está disponible o ha sido retirada del stock.</p>
+        <a routerLink="/catalogo" class="hs-btn-primary inline-flex" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #c25e71; color: white; border-radius: 9999px; text-decoration: none; font-weight: 500;">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+          <span>Volver al catálogo</span>
+        </a>
+      </div>
     }
   </div>
 </div>
